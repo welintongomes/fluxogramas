@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fluxogramas Interativos</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='8' fill='%234CAF50'/%3E%3Cpath d='M16 16h16v4H16zM16 24h16v4H16zM16 32h12v4H16z' fill='white'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 10px;
+            padding-bottom: 70px;
+        }
+
+        .header {
+            background: #2196F3;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #FF9800;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-info {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .flowchart-list {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .flowchart-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flowchart-item:last-child {
+            border-bottom: none;
+        }
+
+        .flowchart-item:active {
+            background: #f0f0f0;
+        }
+
+        .flowchart-name {
+            font-weight: 500;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .flowchart-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .icon-btn {
+            padding: 8px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .node-view {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .node {
+            background: #E3F2FD;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .node-question {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .node-children {
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 3px solid #2196F3;
+            display: none;
+        }
+
+        .node-children.expanded {
+            display: block;
+        }
+
+        .child-node {
+            background: #FFF3E0;
+            border: 2px solid #FF9800;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .child-node:active {
+            background: #FFE0B2;
+        }
+
+        .child-label {
+            font-weight: 500;
+            color: #F57C00;
+            cursor: pointer;
+        }
+
+        .node-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .node-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-add {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-navigate {
+            background: #FF9800;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-clear-progress {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .execution-checkbox {
+            margin-top: 10px;
+            padding: 10px;
+            background: #F5F5F5;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .execution-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .execution-checkbox label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #555;
+            flex: 1;
+        }
+
+        .execution-checkbox.checked {
+            background: #C8E6C9;
+            border: 2px solid #4CAF50;
+        }
+
+        .execution-checkbox.checked label {
+            color: #2E7D32;
+        }
+
+        .solution-node {
+            background: #C8E6C9;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .solution-label {
+            font-weight: 600;
+            color: #2E7D32;
+            margin-bottom: 5px;
+        }
+
+        .breadcrumb {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #666;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .breadcrumb-item {
+            display: inline;
+            color: #2196F3;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item:hover {
+            color: #1976D2;
+        }
+
+        .breadcrumb-separator {
+            margin: 0 5px;
+            color: #999;
+        }
+
+        .procedure-section {
+            background: #E8F5E9;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .procedure-section.visible {
+            display: block;
+        }
+
+        .procedure-header {
+            font-weight: 600;
+            color: #2E7D32;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .procedure-content {
+            color: #1B5E20;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .toggle-procedure-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .nav-btn.active {
+            color: #2196F3;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            background: #2196F3;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .import-export-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .import-export-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .file-input {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Tela de Lista de Fluxogramas -->
+    <div id="listView">
+        <div class="header">
+            <h1>📊 Fluxogramas</h1>
+            <button class="btn btn-primary" onclick="showNewFlowchartModal()">+ Novo</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Pesquisar fluxogramas..." oninput="filterFlowcharts()">
+        </div>
+
+        <div class="flowchart-list" id="flowchartList">
+            <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <p>Nenhum fluxograma ainda.<br>Crie seu primeiro fluxograma!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Navegação do Fluxograma -->
+    <div id="navigationView" class="hidden">
+        <div class="header">
+            <button class="btn btn-secondary" onclick="backToList()">← Voltar</button>
+            <h1 id="currentFlowchartName" onclick="editFlowchartName()" style="cursor: pointer; font-size: 16px;"></h1>
+            <button class="btn btn-primary" onclick="showAddNodeModal()">+ Nó</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button class="btn btn-clear-progress" onclick="clearProgress()" style="flex: 1;">🔄 Limpar
+                Progresso</button>
+        </div>
+
+        <div class="breadcrumb" id="breadcrumb">Início</div>
+
+        <div class="node-view" id="nodeView"></div>
+    </div>
+
+    <!-- Tela de Importar/Exportar -->
+    <div id="importExportView" class="hidden">
+        <div class="header">
+            <h1>📤 Importar/Exportar</h1>
+        </div>
+
+        <div class="import-export-section">
+            <h3>Exportar Todos os Fluxogramas</h3>
+            <button class="btn btn-primary" onclick="exportAllFlowcharts()">📥 Baixar Arquivo JSON</button>
+        </div>
+
+        <div class="import-export-section">
+            <h3>Importar Fluxogramas</h3>
+            <input type="file" id="fileInput" accept=".json" class="file-input">
+            <button class="btn btn-info" onclick="importFlowcharts()">📤 Importar de Arquivo</button>
+        </div>
+
+        <div class="import-export-section">
+            <h3>Limpar Todos os Dados</h3>
+            <p style="color: #f44336; margin-bottom: 10px;">⚠️ Esta ação não pode ser desfeita!</p>
+            <button class="btn btn-danger" onclick="clearAllData()">🗑️ Apagar Tudo</button>
+        </div>
+    </div>
+
+    <!-- Modal Novo Fluxograma -->
+    <div id="newFlowchartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Novo Fluxograma</div>
+            <div class="form-group">
+                <label>Nome do Fluxograma</label>
+                <input type="text" id="flowchartNameInput" placeholder="Ex: Diagnóstico de Rede">
+            </div>
+            <div class="form-group">
+                <label>Pergunta Inicial</label>
+                <textarea id="flowchartQuestionInput" placeholder="Ex: Qual é o problema?"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('newFlowchartModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="createFlowchart()">Criar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Nó -->
+    <div id="addNodeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Opção</div>
+            <div class="form-group">
+                <label>Texto da Opção</label>
+                <input type="text" id="nodeOptionInput" placeholder="Ex: Só faz um click">
+            </div>
+            <div class="form-group">
+                <label>Como Executar/Testar (opcional)</label>
+                <textarea id="nodeProcedureInput"
+                    placeholder="Ex: 1. Gire a chave&#10;2. Ouça o som do motor&#10;3. Observe se há apenas um click"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Próxima Pergunta (opcional - para criar mais níveis)</label>
+                <textarea id="nodeQuestionInput" placeholder="Ex: A bateria está carregada?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Solução (opcional - se for solução final)</label>
+                <textarea id="nodeSolutionInput" placeholder="Ex: Verificar bateria e cabos"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('addNodeModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="addNode()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Nó -->
+    <div id="editNodeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Editar Opção</div>
+            <div class="form-group">
+                <label>Texto da Opção</label>
+                <input type="text" id="editNodeOptionInput">
+            </div>
+            <div class="form-group">
+                <label>Como Executar/Testar (opcional)</label>
+                <textarea id="editNodeProcedureInput"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Próxima Pergunta (opcional)</label>
+                <textarea id="editNodeQuestionInput"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Solução (opcional)</label>
+                <textarea id="editNodeSolutionInput"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('editNodeModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveEditedNode()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Pergunta Raiz -->
+    <div id="editRootModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Editar Pergunta</div>
+            <div class="form-group">
+                <label>Pergunta</label>
+                <textarea id="editRootQuestionInput"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('editRootModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveEditedRoot()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Sub-Opção -->
+    <div id="addSubNodeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Adicionar Sub-Opção</div>
+            <div class="form-group">
+                <label>Texto da Sub-Opção</label>
+                <input type="text" id="subNodeOptionInput" placeholder="Ex: Bateria descarregada">
+            </div>
+            <div class="form-group">
+                <label>Como Executar/Testar (opcional)</label>
+                <textarea id="subNodeProcedureInput"
+                    placeholder="Ex: 1. Use um multímetro&#10;2. Meça a voltagem da bateria&#10;3. Deve estar acima de 12V"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Próxima Pergunta (opcional - para criar mais níveis)</label>
+                <textarea id="subNodeQuestionInput" placeholder="Ex: A bateria tem mais de 3 anos?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Solução (opcional - se for solução final)</label>
+                <textarea id="subNodeSolutionInput" placeholder="Ex: Trocar a bateria por uma nova"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('addSubNodeModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveSubNode()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegação Inferior -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="showView('list')">
+            <span class="nav-icon">📋</span>
+            <span>Lista</span>
+        </button>
+        <button class="nav-btn" onclick="showView('import')">
+            <span class="nav-icon">📤</span>
+            <span>Exportar</span>
+        </button>
+    </div>
+
+    <script>
+        // Gerenciamento IndexedDB
+        let db;
+        const DB_NAME = 'FlowchartDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'flowcharts';
+
+        // Estado da aplicação
+        let currentFlowchart = null;
+        let currentPath = [];
+        let allFlowcharts = [];
+        let editingNodeIndex = null;
+        let addingSubNodeToIndex = null;
+
+        // Inicializar IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+            });
+        }
+
+        // Salvar fluxograma
+        async function saveFlowchart(flowchart) {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+
+            if (flowchart.id) {
+                await store.put(flowchart);
+            } else {
+                flowchart.id = Date.now();
+                flowchart.createdAt = new Date().toISOString();
+                await store.add(flowchart);
+            }
+
+            return new Promise((resolve, reject) => {
+                transaction.oncomplete = () => resolve(flowchart);
+                transaction.onerror = () => reject(transaction.error);
+            });
+        }
+
+        // Carregar todos os fluxogramas
+        async function loadFlowcharts() {
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.getAll();
+
+            return new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Deletar fluxograma
+        async function deleteFlowchart(id) {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            await store.delete(id);
+
+            return new Promise((resolve, reject) => {
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error);
+            });
+        }
+
+        // Criar novo fluxograma
+        async function createFlowchart() {
+            const name = document.getElementById('flowchartNameInput').value.trim();
+            const question = document.getElementById('flowchartQuestionInput').value.trim();
+
+            if (!name || !question) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+
+            const flowchart = {
+                name: name,
+                rootNode: {
+                    question: question,
+                    children: []
+                }
+            };
+
+            await saveFlowchart(flowchart);
+            closeModal('newFlowchartModal');
+            document.getElementById('flowchartNameInput').value = '';
+            document.getElementById('flowchartQuestionInput').value = '';
+            await refreshFlowchartList();
+        }
+
+        // Renderizar lista de fluxogramas
+        async function refreshFlowchartList() {
+            allFlowcharts = await loadFlowcharts();
+            const listElement = document.getElementById('flowchartList');
+
+            if (allFlowcharts.length === 0) {
+                listElement.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <p>Nenhum fluxograma ainda.<br>Crie seu primeiro fluxograma!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listElement.innerHTML = allFlowcharts.map(fc => `
+                <div class="flowchart-item">
+                    <div class="flowchart-name" onclick="openFlowchart(${fc.id})">${fc.name}</div>
+                    <div class="flowchart-actions">
+                        <button class="icon-btn" onclick="event.stopPropagation(); deleteFlowchartConfirm(${fc.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filtrar fluxogramas
+        function filterFlowcharts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allFlowcharts.filter(fc =>
+                fc.name.toLowerCase().includes(searchTerm)
+            );
+
+            const listElement = document.getElementById('flowchartList');
+
+            if (filtered.length === 0) {
+                listElement.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>Nenhum fluxograma encontrado</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listElement.innerHTML = filtered.map(fc => `
+                <div class="flowchart-item">
+                    <div class="flowchart-name" onclick="openFlowchart(${fc.id})">${fc.name}</div>
+                    <div class="flowchart-actions">
+                        <button class="icon-btn" onclick="event.stopPropagation(); deleteFlowchartConfirm(${fc.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Abrir fluxograma
+        async function openFlowchart(id) {
+            const flowcharts = await loadFlowcharts();
+            currentFlowchart = flowcharts.find(fc => fc.id === id);
+            currentPath = [currentFlowchart.rootNode];
+
+            document.getElementById('currentFlowchartName').textContent = currentFlowchart.name;
+            renderCurrentNode();
+            showView('navigation');
+        }
+
+        // Renderizar nó atual
+        function renderCurrentNode() {
+            const currentNode = currentPath[currentPath.length - 1];
+            const nodeView = document.getElementById('nodeView');
+            const breadcrumb = document.getElementById('breadcrumb');
+
+            // Auto-expandir filhos quando há filhos
+            if (currentNode.children && currentNode.children.length > 0 && currentNode.childrenExpanded === undefined) {
+                currentNode.childrenExpanded = true;
+            }
+
+            // Atualizar breadcrumb com links clicáveis
+            if (currentPath.length === 1) {
+                breadcrumb.innerHTML = 'Início';
+            } else {
+                let breadcrumbHTML = '<span class="breadcrumb-item" onclick="navigateToBreadcrumb(0)">Início</span>';
+                for (let i = 1; i < currentPath.length; i++) {
+                    breadcrumbHTML += '<span class="breadcrumb-separator">→</span>';
+                    breadcrumbHTML += `<span class="breadcrumb-item" onclick="navigateToBreadcrumb(${i})">Passo ${i}</span>`;
+                }
+                breadcrumb.innerHTML = breadcrumbHTML;
+            }
+
+            // Renderizar nó
+            let html = `
+                <div class="node">
+                    <div class="node-question" onclick="editRootQuestion()">${currentNode.question}</div>
+                    <div class="node-actions">
+                        <button class="node-btn btn-add" onclick="showAddNodeModal()">+ Adicionar Opção</button>
+                        <button class="node-btn btn-edit" onclick="editRootQuestion()">✏️ Editar Pergunta</button>
+                    </div>
+                    ${currentNode.children.length > 0 ? `
+                        <button class="toggle-btn" onclick="toggleChildren()">
+                            ${currentNode.childrenExpanded ? '▼ Ocultar Opções' : '▶ Mostrar Opções'}
+                        </button>
+                    ` : ''}
+                    <div class="node-children ${currentNode.childrenExpanded ? 'expanded' : ''}">
+            `;
+
+            currentNode.children.forEach((child, index) => {
+                const hasSubNodes = child.children && child.children.length > 0;
+                const hasProcedure = child.procedure && child.procedure.trim();
+                const procedureId = `procedure-${index}`;
+                const isExecuted = child.executed || false;
+                const checkboxId = `checkbox-${index}`;
+
+                html += `
+                    <div class="child-node">
+                        <div class="child-label">${child.option}</div>
+                        
+                        <div class="execution-checkbox ${isExecuted ? 'checked' : ''}" onclick="toggleExecution(${index})">
+                            <input type="checkbox" id="${checkboxId}" ${isExecuted ? 'checked' : ''} onclick="event.stopPropagation(); toggleExecution(${index})">
+                            <label for="${checkboxId}">${isExecuted ? '✅ Executado' : '☐ Marcar como executado'}</label>
+                        </div>
+                        
+                        ${hasProcedure ? `
+                            <button class="toggle-procedure-btn" onclick="toggleProcedure('${procedureId}')">
+                                📋 Mostrar Como Executar
+                            </button>
+                            <div id="${procedureId}" class="procedure-section">
+                                <div class="procedure-header">
+                                    🔧 Como Executar/Testar:
+                                </div>
+                                <div class="procedure-content">${child.procedure}</div>
+                            </div>
+                        ` : ''}
+                        
+                        ${child.solution ? `
+                            <div class="solution-node">
+                                <div class="solution-label">✅ Solução:</div>
+                                <div>${child.solution}</div>
+                            </div>
+                        ` : ''}
+                        ${child.question && !hasSubNodes ? `
+                            <div style="margin-top: 8px; color: #666; font-size: 13px;">
+                                📝 Próxima pergunta: ${child.question}
+                            </div>
+                        ` : ''}
+                        <div class="node-actions">
+                            <button class="node-btn btn-add" onclick="event.stopPropagation(); addSubNode(${index})">+ Sub-opção</button>
+                            <button class="node-btn btn-edit" onclick="event.stopPropagation(); editNode(${index})">✏️ Editar</button>
+                            <button class="node-btn btn-delete" onclick="event.stopPropagation(); deleteNode(${index})">🗑️ Remover</button>
+                            ${hasSubNodes ? `
+                                <button class="node-btn btn-navigate" onclick="event.stopPropagation(); navigateToChild(${index})">→ Abrir (${child.children.length})</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            nodeView.innerHTML = html;
+        }
+
+        // Alternar visibilidade dos filhos
+        function toggleChildren() {
+            const currentNode = currentPath[currentPath.length - 1];
+            currentNode.childrenExpanded = !currentNode.childrenExpanded;
+            renderCurrentNode();
+        }
+
+        // Navegar para filho
+        function navigateToChild(index) {
+            const currentNode = currentPath[currentPath.length - 1];
+            const child = currentNode.children[index];
+
+            if (child.children && child.children.length > 0) {
+                // Auto-expandir ao navegar
+                child.childrenExpanded = true;
+                currentPath.push(child);
+                renderCurrentNode();
+            }
+        }
+
+        // Adicionar nó
+        async function addNode() {
+            const option = document.getElementById('nodeOptionInput').value.trim();
+            const procedure = document.getElementById('nodeProcedureInput').value.trim();
+            const question = document.getElementById('nodeQuestionInput').value.trim();
+            const solution = document.getElementById('nodeSolutionInput').value.trim();
+
+            if (!option) {
+                alert('Por favor, preencha o texto da opção!');
+                return;
+            }
+
+            const newNode = {
+                option: option,
+                children: [],
+                childrenExpanded: false
+            };
+
+            if (procedure) {
+                newNode.procedure = procedure;
+            }
+
+            if (question) {
+                newNode.question = question;
+            }
+
+            if (solution) {
+                newNode.solution = solution;
+            }
+
+            const currentNode = currentPath[currentPath.length - 1];
+            currentNode.children.push(newNode);
+
+            await saveFlowchart(currentFlowchart);
+            closeModal('addNodeModal');
+            document.getElementById('nodeOptionInput').value = '';
+            document.getElementById('nodeProcedureInput').value = '';
+            document.getElementById('nodeQuestionInput').value = '';
+            document.getElementById('nodeSolutionInput').value = '';
+            renderCurrentNode();
+        }
+
+        // Adicionar sub-nó em um nó específico - Abre modal
+        function addSubNode(parentIndex) {
+            addingSubNodeToIndex = parentIndex;
+
+            // Limpar campos do modal
+            document.getElementById('subNodeOptionInput').value = '';
+            document.getElementById('subNodeProcedureInput').value = '';
+            document.getElementById('subNodeQuestionInput').value = '';
+            document.getElementById('subNodeSolutionInput').value = '';
+
+            // Abrir modal
+            document.getElementById('addSubNodeModal').classList.add('active');
+        }
+
+        // Salvar sub-nó do modal
+        async function saveSubNode() {
+            const option = document.getElementById('subNodeOptionInput').value.trim();
+            const procedure = document.getElementById('subNodeProcedureInput').value.trim();
+            const question = document.getElementById('subNodeQuestionInput').value.trim();
+            const solution = document.getElementById('subNodeSolutionInput').value.trim();
+
+            if (!option) {
+                alert('Por favor, preencha o texto da sub-opção!');
+                return;
+            }
+
+            const currentNode = currentPath[currentPath.length - 1];
+            const parentNode = currentNode.children[addingSubNodeToIndex];
+
+            // Se o nó pai não tem pergunta e foi fornecida uma pergunta, adicionar
+            if (!parentNode.question && question) {
+                parentNode.question = question;
+            }
+
+            // Criar estrutura de children se não existir
+            if (!parentNode.children) {
+                parentNode.children = [];
+            }
+
+            const newNode = {
+                option: option,
+                children: [],
+                childrenExpanded: false
+            };
+
+            if (procedure) {
+                newNode.procedure = procedure;
+            }
+
+            if (question) {
+                newNode.question = question;
+            }
+
+            if (solution) {
+                newNode.solution = solution;
+            }
+
+            parentNode.children.push(newNode);
+
+            await saveFlowchart(currentFlowchart);
+            closeModal('addSubNodeModal');
+            addingSubNodeToIndex = null;
+            renderCurrentNode();
+        }
+
+        // Editar nó
+        function editNode(index) {
+            editingNodeIndex = index;
+            const currentNode = currentPath[currentPath.length - 1];
+            const node = currentNode.children[index];
+
+            document.getElementById('editNodeOptionInput').value = node.option || '';
+            document.getElementById('editNodeProcedureInput').value = node.procedure || '';
+            document.getElementById('editNodeQuestionInput').value = node.question || '';
+            document.getElementById('editNodeSolutionInput').value = node.solution || '';
+
+            document.getElementById('editNodeModal').classList.add('active');
+        }
+
+        // Salvar nó editado
+        async function saveEditedNode() {
+            const option = document.getElementById('editNodeOptionInput').value.trim();
+            const procedure = document.getElementById('editNodeProcedureInput').value.trim();
+            const question = document.getElementById('editNodeQuestionInput').value.trim();
+            const solution = document.getElementById('editNodeSolutionInput').value.trim();
+
+            if (!option) {
+                alert('O texto da opção não pode ficar vazio!');
+                return;
+            }
+
+            const currentNode = currentPath[currentPath.length - 1];
+            const node = currentNode.children[editingNodeIndex];
+
+            node.option = option;
+            node.procedure = procedure || undefined;
+            node.question = question || undefined;
+            node.solution = solution || undefined;
+
+            // Remove campos vazios
+            if (!node.procedure) delete node.procedure;
+            if (!node.question) delete node.question;
+            if (!node.solution) delete node.solution;
+
+            await saveFlowchart(currentFlowchart);
+            closeModal('editNodeModal');
+            editingNodeIndex = null;
+            renderCurrentNode();
+        }
+
+        // Deletar nó
+        async function deleteNode(index) {
+            if (!confirm('Tem certeza que deseja remover esta opção e todos os seus sub-níveis?')) {
+                return;
+            }
+
+            const currentNode = currentPath[currentPath.length - 1];
+            currentNode.children.splice(index, 1);
+
+            await saveFlowchart(currentFlowchart);
+            renderCurrentNode();
+        }
+
+        // Editar pergunta raiz
+        function editRootQuestion() {
+            const currentNode = currentPath[currentPath.length - 1];
+            document.getElementById('editRootQuestionInput').value = currentNode.question || '';
+            document.getElementById('editRootModal').classList.add('active');
+        }
+
+        // Salvar pergunta raiz editada
+        async function saveEditedRoot() {
+            const question = document.getElementById('editRootQuestionInput').value.trim();
+
+            if (!question) {
+                alert('A pergunta não pode ficar vazia!');
+                return;
+            }
+
+            const currentNode = currentPath[currentPath.length - 1];
+            currentNode.question = question;
+
+            await saveFlowchart(currentFlowchart);
+            closeModal('editRootModal');
+            renderCurrentNode();
+        }
+
+        // Editar nome do fluxograma
+        async function editFlowchartName() {
+            const newName = prompt('Novo nome do fluxograma:', currentFlowchart.name);
+
+            if (newName && newName.trim()) {
+                currentFlowchart.name = newName.trim();
+                await saveFlowchart(currentFlowchart);
+                document.getElementById('currentFlowchartName').textContent = currentFlowchart.name;
+            }
+        }
+
+        // Alternar visibilidade do procedimento
+        function toggleProcedure(procedureId) {
+            const element = document.getElementById(procedureId);
+            const button = event.target;
+
+            if (element.classList.contains('visible')) {
+                element.classList.remove('visible');
+                button.textContent = '📋 Mostrar Como Executar';
+            } else {
+                element.classList.add('visible');
+                button.textContent = '📋 Ocultar Como Executar';
+            }
+        }
+
+        // Navegar para nível específico via breadcrumb
+        function navigateToBreadcrumb(level) {
+            if (level < currentPath.length) {
+                currentPath = currentPath.slice(0, level + 1);
+                renderCurrentNode();
+            }
+        }
+
+        // Alternar estado de execução
+        async function toggleExecution(index) {
+            const currentNode = currentPath[currentPath.length - 1];
+            const child = currentNode.children[index];
+
+            child.executed = !child.executed;
+
+            await saveFlowchart(currentFlowchart);
+            renderCurrentNode();
+        }
+
+        // Limpar todo o progresso de execução
+        async function clearProgress() {
+            if (!confirm('Deseja limpar todo o progresso de execução deste fluxograma? Isso não apagará os dados, apenas desmarcará todos os passos executados.')) {
+                return;
+            }
+
+            // Função recursiva para limpar execução em todos os nós
+            function clearNodeExecution(node) {
+                if (node.executed) {
+                    delete node.executed;
+                }
+                if (node.children && node.children.length > 0) {
+                    node.children.forEach(child => clearNodeExecution(child));
+                }
+            }
+
+            clearNodeExecution(currentFlowchart.rootNode);
+
+            await saveFlowchart(currentFlowchart);
+            renderCurrentNode();
+
+            alert('Progresso limpo com sucesso! Você pode iniciar o diagnóstico do zero.');
+        }
+
+        // Voltar para lista
+        function backToList() {
+            if (currentPath.length > 1) {
+                currentPath.pop();
+                renderCurrentNode();
+            } else {
+                showView('list');
+                refreshFlowchartList();
+            }
+        }
+
+        // Deletar fluxograma com confirmação
+        async function deleteFlowchartConfirm(id) {
+            if (confirm('Tem certeza que deseja deletar este fluxograma?')) {
+                await deleteFlowchart(id);
+                await refreshFlowchartList();
+            }
+        }
+
+        // Exportar todos os fluxogramas
+        async function exportAllFlowcharts() {
+            const flowcharts = await loadFlowcharts();
+            const dataStr = JSON.stringify(flowcharts, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `fluxogramas_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Importar fluxogramas
+        async function importFlowcharts() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Por favor, selecione um arquivo!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const flowcharts = JSON.parse(e.target.result);
+
+                    for (const fc of flowcharts) {
+                        delete fc.id; // Remove ID para criar novos
+                        await saveFlowchart(fc);
+                    }
+
+                    alert('Fluxogramas importados com sucesso!');
+                    fileInput.value = '';
+                    await refreshFlowchartList();
+                } catch (error) {
+                    alert('Erro ao importar arquivo: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Limpar todos os dados
+        async function clearAllData() {
+            if (confirm('⚠️ ATENÇÃO! Isso vai apagar TODOS os fluxogramas. Tem certeza?')) {
+                if (confirm('Última confirmação: todos os dados serão perdidos!')) {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    await store.clear();
+
+                    transaction.oncomplete = async () => {
+                        alert('Todos os dados foram apagados!');
+                        await refreshFlowchartList();
+                        showView('list');
+                    };
+                }
+            }
+        }
+
+        // Gerenciamento de views
+        function showView(view) {
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('navigationView').classList.add('hidden');
+            document.getElementById('importExportView').classList.add('hidden');
+
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => btn.classList.remove('active'));
+
+            if (view === 'list') {
+                document.getElementById('listView').classList.remove('hidden');
+                navBtns[0].classList.add('active');
+                refreshFlowchartList();
+            } else if (view === 'navigation') {
+                document.getElementById('navigationView').classList.remove('hidden');
+            } else if (view === 'import') {
+                document.getElementById('importExportView').classList.remove('hidden');
+                navBtns[1].classList.add('active');
+            }
+        }
+
+        // Gerenciamento de modals
+        function showNewFlowchartModal() {
+            document.getElementById('newFlowchartModal').classList.add('active');
+        }
+
+        function showAddNodeModal() {
+            document.getElementById('addNodeModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Inicializar app
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            await refreshFlowchartList();
+        });
+
+        // Fechar modal ao clicar fora
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
