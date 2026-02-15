@@ -75,8 +75,8 @@
         }
 
         .search-box input {
-            width: 100%;
-            padding: 12px;
+            width: 85%;
+            padding: 13px 28px 12px 45px;
             border: 2px solid #ddd;
             border-radius: 5px;
             font-size: 16px;
@@ -109,7 +109,7 @@
         .flowchart-name {
             font-weight: 500;
             font-size: 16px;
-            color: #333;
+            color: #320202;
         }
 
         .flowchart-actions {
@@ -119,7 +119,7 @@
 
         .icon-btn {
             padding: 8px;
-            background: #f5f5f5;
+            background: #ff5722;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -129,7 +129,7 @@
         .node-view {
             background: white;
             border-radius: 10px;
-            padding: 20px;
+            padding: 5px;
             margin-bottom: 15px;
         }
 
@@ -137,7 +137,7 @@
             background: #E3F2FD;
             border: 2px solid #2196F3;
             border-radius: 10px;
-            padding: 15px;
+            padding: 9px;
             margin-bottom: 10px;
             position: relative;
         }
@@ -151,7 +151,7 @@
 
         .node-children {
             margin-top: 10px;
-            padding-left: 20px;
+            padding-left: 10px;
             border-left: 3px solid #2196F3;
             display: none;
         }
@@ -174,8 +174,9 @@
         }
 
         .child-label {
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
             font-weight: 500;
-            color: #F57C00;
+            color: #320202;
             cursor: pointer;
         }
 
@@ -319,7 +320,6 @@
         }
 
         .procedure-content {
-            overflow-wrap: break-word;
             color: #1B5E20;
             font-size: 14px;
             line-height: 1.6;
@@ -415,8 +415,10 @@
             background: white;
             border-top: 1px solid #ddd;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-evenly;
             padding: 10px;
+            align-items: stretch;
+            flex-direction: row;
         }
 
         .nav-btn {
@@ -437,6 +439,185 @@
 
         .nav-icon {
             font-size: 24px;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            padding: 0px;
+            background: #F5F5F5;
+            border-radius: 10px;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .quick-action-btn.primary {
+            margin: 0px 0px 10px 0px;
+            padding: 1px;
+            background: #4CAF50;
+            color: white;
+        }
+
+        .quick-action-btn.secondary {
+            margin: 0px 0px 10px 0px;
+            padding: 1px;
+            background: #FF9800;
+            color: white;
+        }
+
+        .audio-btn {
+            padding: 8px 12px;
+            border: 2px solid #f44336;
+            background: white;
+            color: #f44336;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .audio-btn:hover {
+            background: #f44336;
+            color: white;
+        }
+
+        .audio-btn.recording {
+            background: #f44336;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            align-items: center;
+        }
+
+        .search-audio-btn {
+            position: absolute;
+            right: 15px;
+            top: 14%;
+            transform: translateY(-50%);
+            padding: 8px 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .search-audio-btn.recording {
+            background: #f44336;
+            animation: pulse 1.5s infinite;
+        }
+
+        .search-clear-btn {
+            font-weight: bolder;
+            position: absolute;
+            right: 86.4%;
+            top: 14%;
+            transform: translateY(-50%);
+            padding: 12px 17px;
+            background: #99999900;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 17px;
+            display: none;
+        }
+
+        .search-clear-btn.visible {
+            display: block;
+        }
+
+        .search-clear-btn:active {
+            background: #666;
+        }
+
+        .fab-btn {
+            position: fixed;
+            bottom: 87px;
+            right: 227px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: all 0.3s;
+        }
+
+        .fab-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .fab-audio-btn {
+            position: fixed;
+            bottom: 87px;
+            right: 130px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #FF5722;
+            color: white;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: all 0.3s;
+        }
+
+        .fab-audio-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .fab-audio-btn.recording {
+            background: #f44336;
+            animation: pulse 1.5s infinite;
         }
 
         .hidden {
@@ -493,7 +674,10 @@
         </div>
 
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="🔍 Pesquisar fluxogramas..." oninput="filterFlowcharts()">
+            <input type="text" id="searchInput" placeholder="🔍 Pesquisar fluxogramas..." oninput="handleSearchInput()">
+            <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()">✕</button>
+            <button class="search-audio-btn" id="searchAudioBtn" onclick="toggleSearchAudio()"
+                title="Pesquisar por voz">🎤</button>
         </div>
 
         <div class="flowchart-list" id="flowchartList">
@@ -502,6 +686,10 @@
                 <p>Nenhum fluxograma ainda.<br>Crie seu primeiro fluxograma!</p>
             </div>
         </div>
+
+        <!-- Botões flutuantes de adicionar -->
+        <button class="fab-audio-btn" onclick="quickCreateFlowchartAudio()" title="Criar fluxograma por voz">🎤</button>
+        <button class="fab-btn" onclick="quickCreateFlowchart()" title="Criar fluxograma rápido">+</button>
     </div>
 
     <!-- Tela de Navegação do Fluxograma -->
@@ -520,6 +708,9 @@
         <div class="breadcrumb" id="breadcrumb">Início</div>
 
         <div class="node-view" id="nodeView"></div>
+
+
+
     </div>
 
     <!-- Tela de Importar/Exportar -->
@@ -565,6 +756,33 @@
         </div>
     </div>
 
+    <!-- Modal Criação Rápida por Áudio -->
+    <div id="quickAudioModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Criar Fluxograma por Voz 🎤</div>
+            <div class="form-group">
+                <label>Nome do Fluxograma</label>
+                <input type="text" id="quickAudioNameInput" placeholder="Ex: Motor de Partida">
+                <div class="audio-controls">
+                    <button class="audio-btn" id="quickAudioNameBtn"
+                        onclick="toggleAudioInput('quickAudioNameInput', this)">🎤 Gravar</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Pergunta Inicial</label>
+                <textarea id="quickAudioQuestionInput" placeholder="Ex: O que acontece ao dar partida?"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('quickAudioQuestionInput', this)">🎤
+                        Gravar</button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('quickAudioModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="createFlowchartFromAudioModal()">Criar e Abrir</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Adicionar Nó -->
     <div id="addNodeModal" class="modal">
         <div class="modal-content">
@@ -572,19 +790,31 @@
             <div class="form-group">
                 <label>Texto da Opção</label>
                 <input type="text" id="nodeOptionInput" placeholder="Ex: Só faz um click">
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('nodeOptionInput', this)">🎤 Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Como Executar/Testar (opcional)</label>
                 <textarea id="nodeProcedureInput"
                     placeholder="Ex: 1. Gire a chave&#10;2. Ouça o som do motor&#10;3. Observe se há apenas um click"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('nodeProcedureInput', this)">🎤 Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Próxima Pergunta (opcional - para criar mais níveis)</label>
                 <textarea id="nodeQuestionInput" placeholder="Ex: A bateria está carregada?"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('nodeQuestionInput', this)">🎤 Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Solução (opcional - se for solução final)</label>
                 <textarea id="nodeSolutionInput" placeholder="Ex: Verificar bateria e cabos"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('nodeSolutionInput', this)">🎤 Gravar</button>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal('addNodeModal')">Cancelar</button>
@@ -600,18 +830,33 @@
             <div class="form-group">
                 <label>Texto da Opção</label>
                 <input type="text" id="editNodeOptionInput">
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('editNodeOptionInput', this)">🎤 Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Como Executar/Testar (opcional)</label>
                 <textarea id="editNodeProcedureInput"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('editNodeProcedureInput', this)">🎤
+                        Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Próxima Pergunta (opcional)</label>
                 <textarea id="editNodeQuestionInput"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('editNodeQuestionInput', this)">🎤
+                        Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Solução (opcional)</label>
                 <textarea id="editNodeSolutionInput"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('editNodeSolutionInput', this)">🎤
+                        Gravar</button>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal('editNodeModal')">Cancelar</button>
@@ -642,19 +887,34 @@
             <div class="form-group">
                 <label>Texto da Sub-Opção</label>
                 <input type="text" id="subNodeOptionInput" placeholder="Ex: Bateria descarregada">
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('subNodeOptionInput', this)">🎤 Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Como Executar/Testar (opcional)</label>
                 <textarea id="subNodeProcedureInput"
                     placeholder="Ex: 1. Use um multímetro&#10;2. Meça a voltagem da bateria&#10;3. Deve estar acima de 12V"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('subNodeProcedureInput', this)">🎤
+                        Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Próxima Pergunta (opcional - para criar mais níveis)</label>
                 <textarea id="subNodeQuestionInput" placeholder="Ex: A bateria tem mais de 3 anos?"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('subNodeQuestionInput', this)">🎤
+                        Gravar</button>
+                </div>
             </div>
             <div class="form-group">
                 <label>Solução (opcional - se for solução final)</label>
                 <textarea id="subNodeSolutionInput" placeholder="Ex: Trocar a bateria por uma nova"></textarea>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudioInput('subNodeSolutionInput', this)">🎤
+                        Gravar</button>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal('addSubNodeModal')">Cancelar</button>
@@ -669,6 +929,14 @@
             <span class="nav-icon">📋</span>
             <span>Lista</span>
         </button>
+        <div class="quick-actions">
+            <button class="quick-action-btn primary" onclick="quickAddOption()">
+                🎤 + Opção
+            </button>
+            <button class="quick-action-btn secondary" onclick="quickAddSubOption()">
+                🎤 + Sub-opção
+            </button>
+        </div>
         <button class="nav-btn" onclick="showView('import')">
             <span class="nav-icon">📤</span>
             <span>Exportar</span>
@@ -829,6 +1097,122 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        // Manipular entrada de pesquisa e mostrar/ocultar botão X
+        function handleSearchInput() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('searchClearBtn');
+
+            // Mostrar botão X se houver texto
+            if (searchInput.value.trim()) {
+                clearBtn.classList.add('visible');
+            } else {
+                clearBtn.classList.remove('visible');
+            }
+
+            filterFlowcharts();
+        }
+
+        // Limpar pesquisa
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('searchClearBtn');
+
+            searchInput.value = '';
+            clearBtn.classList.remove('visible');
+            searchInput.focus();
+            filterFlowcharts();
+        }
+
+        // Criar fluxograma rápido (direto para edição)
+        async function quickCreateFlowchart() {
+            const name = prompt('Nome do fluxograma:', 'Novo Diagnóstico');
+
+            if (!name || !name.trim()) {
+                return;
+            }
+
+            const question = prompt('Pergunta inicial:', 'Qual é o problema?');
+
+            if (!question || !question.trim()) {
+                return;
+            }
+
+            const flowchart = {
+                name: name.trim(),
+                rootNode: {
+                    question: question.trim(),
+                    children: []
+                }
+            };
+
+            await saveFlowchart(flowchart);
+
+            // Recarregar lista
+            await refreshFlowchartList();
+
+            // Abrir o fluxograma criado
+            const flowcharts = await loadFlowcharts();
+            const created = flowcharts.find(fc => fc.name === name.trim());
+            if (created) {
+                openFlowchart(created.id);
+            }
+        }
+
+        // Criar fluxograma rápido por áudio
+        function quickCreateFlowchartAudio() {
+            // Limpar campos
+            document.getElementById('quickAudioNameInput').value = '';
+            document.getElementById('quickAudioQuestionInput').value = '';
+
+            // Abrir modal
+            document.getElementById('quickAudioModal').classList.add('active');
+
+            // Iniciar gravação automática do nome após pequeno delay
+            setTimeout(() => {
+                const nameButton = document.getElementById('quickAudioNameBtn');
+                if (nameButton) {
+                    toggleAudioInput('quickAudioNameInput', nameButton);
+                }
+            }, 300);
+        }
+
+        // Criar fluxograma a partir do modal de áudio
+        async function createFlowchartFromAudioModal() {
+            const name = document.getElementById('quickAudioNameInput').value.trim();
+            const question = document.getElementById('quickAudioQuestionInput').value.trim();
+
+            if (!name) {
+                alert('Por favor, preencha o nome do fluxograma!');
+                return;
+            }
+
+            if (!question) {
+                alert('Por favor, preencha a pergunta inicial!');
+                return;
+            }
+
+            const flowchart = {
+                name: name,
+                rootNode: {
+                    question: question,
+                    children: []
+                }
+            };
+
+            await saveFlowchart(flowchart);
+            closeModal('quickAudioModal');
+
+            // Recarregar lista
+            await refreshFlowchartList();
+
+            // Abrir o fluxograma criado
+            const flowcharts = await loadFlowcharts();
+            const created = flowcharts.find(fc => fc.name === name);
+            if (created) {
+                openFlowchart(created.id);
+            }
         }
 
         // Abrir fluxograma
@@ -1217,6 +1601,245 @@
             alert('Progresso limpo com sucesso! Você pode iniciar o diagnóstico do zero.');
         }
 
+        // ==================== RECONHECIMENTO DE VOZ ====================
+
+        let currentRecognition = null;
+        let currentTargetInput = null;
+        let currentAudioButton = null;
+
+        // Verificar suporte a reconhecimento de voz
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            console.warn('Reconhecimento de voz não suportado neste navegador');
+        }
+
+        // Alternar entrada de áudio para um campo específico
+        function toggleAudioInput(inputId, button) {
+            const inputElement = document.getElementById(inputId);
+
+            if (!SpeechRecognition) {
+                alert('Reconhecimento de voz não suportado neste navegador. Tente usar Chrome ou Edge.');
+                return;
+            }
+
+            // Se já está gravando este campo, parar
+            if (currentRecognition && currentTargetInput === inputId) {
+                stopRecognition();
+                return;
+            }
+
+            // Se está gravando outro campo, parar o anterior completamente
+            if (currentRecognition) {
+                stopRecognition();
+                // Aguardar um momento para garantir que parou completamente
+                setTimeout(() => {
+                    startRecognition(inputId, inputElement, button);
+                }, 200);
+            } else {
+                // Iniciar nova gravação imediatamente
+                startRecognition(inputId, inputElement, button);
+            }
+        }
+
+        // Iniciar reconhecimento de voz
+        function startRecognition(inputId, inputElement, button) {
+            currentRecognition = new SpeechRecognition();
+            currentTargetInput = inputId;
+            currentAudioButton = button;
+
+            currentRecognition.lang = 'pt-BR';
+            currentRecognition.continuous = false; // Mudado para false para evitar repetição no mobile
+            currentRecognition.interimResults = false; // Mudado para false - apenas resultados finais
+
+            currentRecognition.onstart = () => {
+                button.classList.add('recording');
+                button.textContent = '⏹️ Parar';
+            };
+
+            currentRecognition.onresult = (event) => {
+                // Pegar apenas o resultado final
+                const transcript = event.results[0][0].transcript;
+
+                // Adicionar ao texto existente com espaço
+                const currentText = inputElement.value.trim();
+                inputElement.value = currentText ? currentText + ' ' + transcript : transcript;
+            };
+
+            currentRecognition.onerror = (event) => {
+                console.error('Erro no reconhecimento de voz:', event.error);
+
+                // Ignorar erro "aborted" pois é esperado quando trocamos de campo
+                if (event.error === 'aborted') {
+                    stopRecognition();
+                    return;
+                }
+
+                stopRecognition();
+
+                if (event.error === 'not-allowed') {
+                    alert('Permissão de microfone negada. Por favor, permita o acesso ao microfone.');
+                } else if (event.error === 'no-speech') {
+                    // Reiniciar automaticamente se não detectou fala (apenas no mobile)
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    if (isMobile && currentTargetInput === inputId) {
+                        setTimeout(() => {
+                            if (currentTargetInput === inputId) {
+                                startRecognition(inputId, inputElement, button);
+                            }
+                        }, 100);
+                    }
+                } else {
+                    alert('Erro no reconhecimento de voz: ' + event.error);
+                }
+            };
+
+            currentRecognition.onend = () => {
+                // Se ainda está com o botão ativo, reiniciar para modo contínuo
+                if (currentTargetInput === inputId && currentAudioButton && currentAudioButton.classList.contains('recording')) {
+                    setTimeout(() => {
+                        if (currentTargetInput === inputId) {
+                            currentRecognition.start();
+                        }
+                    }, 100);
+                } else {
+                    stopRecognition();
+                }
+            };
+
+            currentRecognition.start();
+        }
+
+        // Parar reconhecimento de voz
+        function stopRecognition() {
+            if (currentRecognition) {
+                try {
+                    currentRecognition.abort(); // Força parada imediata
+                } catch (e) {
+                    // Ignora erro se já estiver parado
+                }
+                currentRecognition = null;
+            }
+
+            if (currentAudioButton) {
+                currentAudioButton.classList.remove('recording');
+                currentAudioButton.textContent = '🎤 Gravar';
+                currentAudioButton = null;
+            }
+
+            currentTargetInput = null;
+        }
+
+        // Pesquisa por áudio
+        let searchRecognition = null;
+
+        function toggleSearchAudio() {
+            const searchInput = document.getElementById('searchInput');
+            const audioBtn = document.getElementById('searchAudioBtn');
+
+            if (!SpeechRecognition) {
+                alert('Reconhecimento de voz não suportado neste navegador. Tente usar Chrome ou Edge.');
+                return;
+            }
+
+            if (searchRecognition) {
+                searchRecognition.stop();
+                searchRecognition = null;
+                audioBtn.classList.remove('recording');
+                return;
+            }
+
+            searchRecognition = new SpeechRecognition();
+            searchRecognition.lang = 'pt-BR';
+            searchRecognition.continuous = false;
+            searchRecognition.interimResults = false;
+
+            searchRecognition.onstart = () => {
+                audioBtn.classList.add('recording');
+            };
+
+            searchRecognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                searchInput.value = transcript;
+                filterFlowcharts();
+            };
+
+            searchRecognition.onerror = (event) => {
+                console.error('Erro na pesquisa por voz:', event.error);
+                audioBtn.classList.remove('recording');
+
+                if (event.error === 'not-allowed') {
+                    alert('Permissão de microfone negada. Por favor, permita o acesso ao microfone.');
+                }
+            };
+
+            searchRecognition.onend = () => {
+                audioBtn.classList.remove('recording');
+                searchRecognition = null;
+            };
+
+            searchRecognition.start();
+        }
+
+        // ==================== AÇÕES RÁPIDAS ====================
+
+        // Ação rápida: adicionar opção e já abrir com áudio
+        function quickAddOption() {
+            showAddNodeModal();
+
+            // Pequeno delay para garantir que o modal abriu
+            setTimeout(() => {
+                const firstInput = document.getElementById('nodeOptionInput');
+                const firstButton = document.querySelector('#addNodeModal .audio-btn');
+                if (firstButton) {
+                    toggleAudioInput('nodeOptionInput', firstButton);
+                }
+            }, 300);
+        }
+
+        // Ação rápida: adicionar sub-opção
+        function quickAddSubOption() {
+            const currentNode = currentPath[currentPath.length - 1];
+
+            if (!currentNode.children || currentNode.children.length === 0) {
+                alert('Não há opções no nível atual. Adicione primeiro uma opção usando o botão "🎤 + Opção".');
+                return;
+            }
+
+            // Se houver apenas uma opção, usar ela automaticamente
+            if (currentNode.children.length === 1) {
+                addSubNode(0);
+
+                // Pequeno delay para garantir que o modal abriu
+                setTimeout(() => {
+                    const firstButton = document.querySelector('#addSubNodeModal .audio-btn');
+                    if (firstButton) {
+                        toggleAudioInput('subNodeOptionInput', firstButton);
+                    }
+                }, 300);
+            } else {
+                // Se houver várias opções, mostrar seleção
+                const options = currentNode.children.map((child, idx) => `${idx + 1}. ${child.option}`).join('\n');
+                const selection = prompt(`Selecione a opção para adicionar sub-opção:\n\n${options}\n\nDigite o número:`);
+
+                if (selection) {
+                    const index = parseInt(selection) - 1;
+                    if (index >= 0 && index < currentNode.children.length) {
+                        addSubNode(index);
+
+                        setTimeout(() => {
+                            const firstButton = document.querySelector('#addSubNodeModal .audio-btn');
+                            if (firstButton) {
+                                toggleAudioInput('subNodeOptionInput', firstButton);
+                            }
+                        }, 300);
+                    } else {
+                        alert('Opção inválida!');
+                    }
+                }
+            }
+        }
+
         // Voltar para lista
         function backToList() {
             if (currentPath.length > 1) {
@@ -1305,9 +1928,18 @@
             const navBtns = document.querySelectorAll('.nav-btn');
             navBtns.forEach(btn => btn.classList.remove('active'));
 
+            // Ocultar FABs por padrão
+            const fabBtn = document.querySelector('.fab-btn');
+            const fabAudioBtn = document.querySelector('.fab-audio-btn');
+            if (fabBtn) fabBtn.style.display = 'none';
+            if (fabAudioBtn) fabAudioBtn.style.display = 'none';
+
             if (view === 'list') {
                 document.getElementById('listView').classList.remove('hidden');
                 navBtns[0].classList.add('active');
+                // Mostrar FABs na tela de lista
+                if (fabBtn) fabBtn.style.display = 'flex';
+                if (fabAudioBtn) fabAudioBtn.style.display = 'flex';
                 refreshFlowchartList();
             } else if (view === 'navigation') {
                 document.getElementById('navigationView').classList.remove('hidden');
@@ -1327,6 +1959,9 @@
         }
 
         function closeModal(modalId) {
+            // Parar qualquer reconhecimento de voz ativo
+            stopRecognition();
+
             document.getElementById(modalId).classList.remove('active');
         }
 
