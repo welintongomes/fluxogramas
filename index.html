@@ -126,12 +126,7 @@
             font-size: 14px;
         }
 
-        .node-view {
-            background: white;
-            border-radius: 10px;
-            padding: 5px;
-            margin-bottom: 15px;
-        }
+
 
         .node {
             background: #E3F2FD;
@@ -143,9 +138,9 @@
         }
 
         .node-question {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 500;
-            color: #1976D2;
+            color: #1a0303;
             margin-bottom: 10px;
         }
 
@@ -185,6 +180,7 @@
             gap: 5px;
             margin-top: 10px;
             flex-wrap: wrap;
+            justify-content: space-around;
         }
 
         .node-btn {
@@ -212,6 +208,8 @@
         }
 
         .btn-navigate {
+            margin-top: 10px;
+            padding: 12px;
             background: #FF9800;
             color: white;
             flex: 1;
@@ -525,7 +523,7 @@
         .search-audio-btn {
             position: absolute;
             right: 15px;
-            top: 14%;
+            top: 115.8px;
             transform: translateY(-50%);
             padding: 8px 12px;
             background: #2196F3;
@@ -544,8 +542,8 @@
         .search-clear-btn {
             font-weight: bolder;
             position: absolute;
-            right: 86.4%;
-            top: 14%;
+            right: 348px;
+            top: 114px;
             transform: translateY(-50%);
             padding: 12px 17px;
             background: #99999900;
@@ -636,6 +634,8 @@
         }
 
         .toggle-btn {
+            margin-top: 8px;
+            width: 100%;
             background: #2196F3;
             color: white;
             padding: 5px 10px;
@@ -660,6 +660,15 @@
 
         .file-input {
             margin-bottom: 10px;
+        }
+
+        .node-view {
+            min-height: 530px;
+            max-height: 531px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #ccc;
+            padding: 10px;
         }
     </style>
 </head>
@@ -705,10 +714,10 @@
                 Progresso</button>
         </div>
 
-        <div class="breadcrumb" id="breadcrumb">Início</div>
+
 
         <div class="node-view" id="nodeView"></div>
-
+        <div class="breadcrumb" id="breadcrumb">Início</div>
 
 
     </div>
