@@ -1693,7 +1693,7 @@
             <div id="editModalSearchContainer" class="task-local-search">
                 <button id="editModalVoiceSearch" title="Pesquisar por voz">🎙️</button>
                 <button id="editModalSearchPrev" title="Anterior">◀</button>
-                <button id="editModalSearchNext" title="Próxima">▶</button>               
+                <button id="editModalSearchNext" title="Próxima">▶</button>
                 <button id="editModalSearchClear" title="Limpar">✖</button>
                 <input type="text" id="editModalSearch" class="cuqui0" placeholder="Pesquisar no texto…">
                 <span id="editModalSearchCounter" class="search-counter"></span>
@@ -3259,14 +3259,10 @@
                     }
                 });
                 setTimeout(() => {
-                    const firstVisibleChild = Array.from(steps).find((s, i) => {
-                        return i > stepIndex &&
-                            parseInt(s.getAttribute('data-level')) === clickedLevel + 1 &&
-                            s.style.display !== 'none';
-                    });
-                    const target = firstVisibleChild || clickedStep;
-                    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'end' });
-                }, 50); // pequeno delay para o DOM atualizar antes de rolar
+                    clickedStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // pequeno delay para o DOM atualizar antes de rolar
+                    scrollAllVisibleStepsToEnd(taskId);
+                }, 60);
             }
 
             // Atualizar ícone do item clicado
@@ -4599,6 +4595,37 @@
 
                 if (icon && step.getAttribute('data-has-children') === 'true') {
                     icon.textContent = '▶';
+                }
+            });
+        }
+        // ==================== SCROLL HORIZONTAL PARA TODOS OS STEPS VISÍVEIS ====================
+        function scrollAllVisibleStepsToEnd(taskId) {
+            const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
+            if (!taskElement) return;
+
+            const wrapper = taskElement.querySelector('.task-steps-wrapper');
+            const steps = taskElement.querySelectorAll('.task-step');
+
+            if (!wrapper) return;
+
+            // Scroll do wrapper principal para o final
+            setTimeout(() => {
+                wrapper.scrollLeft = wrapper.scrollWidth;
+            }, 60);
+
+            // Para cada step visível, garantir que seu conteúdo também seja visível
+            steps.forEach(step => {
+                if (step.style.display === 'none') return;
+
+                const content = step.querySelector('.step-content');
+                if (!content) return;
+
+                // Scroll horizontal do step individual se necessário
+                const stepRect = step.getBoundingClientRect();
+                const wrapperRect = wrapper.getBoundingClientRect();
+
+                if (stepRect.right > wrapperRect.right) {
+                    step.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
                 }
             });
         }
