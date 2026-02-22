@@ -483,8 +483,10 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-                min-height: 65vh;          /* ← ADICIONA */
-    justify-content: center;   /* ← ADICIONA */
+            min-height: 65vh;
+            /* ← ADICIONA */
+            justify-content: center;
+            /* ← ADICIONA */
         }
 
         /* ── Task item ── */
@@ -1418,16 +1420,25 @@
             color: #dc3545 !important;
             font-weight: 600;
         }
+
         #taskList {
-    min-height: 60vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-.task-list.has-search {
-    justify-content: flex-start;  /* resultados começam do centro */
-    padding-top: 20vh;
-}
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .task-list.has-search {
+            justify-content: flex-start;
+            /* resultados começam do centro */
+            padding-top: 20vh;
+        }
+
+        .actions-row {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 7px;
+        }
 
         /* ── Mobile ── */
         @media (max-width: 768px) {
@@ -1512,6 +1523,43 @@
             .ocultareinicia {
                 justify-content: space-between;
             }
+
+            .buttons-row {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            /* Linha de cima */
+            .search-row {
+                width: 100%;
+            }
+
+            /* Linha de baixo */
+            .actions-row {
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 7px;
+            }
+
+            #exportBtn,
+            #importBtn {
+                background: rgba(0, 0, 0, 0.06);
+                color: var(--text-secondary);
+                border-radius: 100px;
+                padding: 9px 10px;
+                font-size: 13px;
+            }
+            #showMoreBtn {
+    margin: 11px 165px 2px 159px;
+    background: rgb(0 122 255 / 5%);
+    color: var(--blue);
+    border-radius: 100px;
+    padding: 11px 14px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
         }
     </style>
 </head>
@@ -1586,19 +1634,7 @@
 
     <!-- ── Toolbar row ── -->
     <div class="toolbar">
-        <div class="search-wrap">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <label for="searchInput"
-                style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">Pesquisar
-                cronogramas</label>
-            <input type="text" id="searchInput" name="searchInput" placeholder="Pesquisar cronogramas…"
-                autocomplete="off">
-            <button id="clearSearchBtn">✕</button>
-        </div>
+
     </div>
 
     <!-- ── Meta row: pagination + view mode ── -->
@@ -1623,7 +1659,7 @@
                 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">Modo
                 de
                 visualização</label>
-                
+
             <select id="viewModeSelect" name="viewModeSelect">
                 <option value="compact">Modo Compacto</option>
                 <option value="all">Mostrar Todos</option>
@@ -1634,23 +1670,46 @@
     <!-- ── Task list ── -->
     <div class="view-mode-container">
         <div class="task-list" id="taskList"></div>
+        <button id="showMoreBtn">Mais</button>
 
         <!-- ── Floating bottom bar ── -->
         <div class="buttons-row">
-            <button id="audioBtn" class="audio-btn">
-                <span id="audioIcon">🎤</span>
-                <span id="audioBtnText"></span>
-            </button>
-            <button id="voiceSearchBtn" title="Pesquisar por voz">🔍</button>
-            <button id="createTaskBtn">➕</button>
-            <button id="showMoreBtn">Mais</button>
-            <button id="exportBtn">Exportar</button>
-            <button id="importBtn">Importar</button>
-            <label for="importInput"
-                style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">Importar
-                arquivo JSON</label>
-            <input type="file" id="importInput" name="importInput" class="file-input" accept=".json">
+
+            <!-- Linha de cima (apenas pesquisa) -->
+            <div class="search-row">
+                <div class="search-wrap">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+
+                    <input type="text" id="searchInput" placeholder="Pesquisar cronogramas…" autocomplete="off">
+
+                    <button id="clearSearchBtn">✕</button>
+                    
+                </div>
+                
+            </div>
+
+            <!-- Linha de baixo (todos os outros botões) -->
+            <div class="actions-row">
+                <button id="audioBtn" class="audio-btn">
+                    <span id="audioIcon">🎤</span>
+                    <span id="audioBtnText"></span>
+                </button>
+
+                <button id="voiceSearchBtn">🔍</button>
+                <button id="createTaskBtn">➕</button>
+                
+                <button id="exportBtn">Exportar</button>
+                <button id="importBtn">Importar</button>
+
+                <input type="file" id="importInput" class="file-input" accept=".json">
+            </div>
+
         </div>
+
     </div>
 
     <!-- ── Edit modal ── -->
@@ -4763,11 +4822,11 @@
                     totalLoadedTasks = viewMode === 'compact' ? 2 : filteredTasks.length;
                     loadTasks();
                     const taskList = document.getElementById('taskList');
-if (searchValue) {
-    taskList.classList.add('has-search');
-} else {
-    taskList.classList.remove('has-search');
-}
+                    if (searchValue) {
+                        taskList.classList.add('has-search');
+                    } else {
+                        taskList.classList.remove('has-search');
+                    }
                 });
             }
 
