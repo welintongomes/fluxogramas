@@ -4658,11 +4658,73 @@
             }
         }
 
+        function detectarPrecoPorHora(taskElement) {
+            const steps = taskElement.querySelectorAll('.task-step');
+            let precoPorHora = 90;
+            let precoPorMinuto = 90 / 60;
+
+            steps.forEach(step => {
+                const checkbox = step.querySelector('.task-step-checkbox');
+                if (!checkbox || !checkbox.checked) return;
+
+                const texto = step.querySelector('.step-content')?.textContent || '';
+
+                // Captura preço por HORA: exige "custa" ou "valor de" antes
+                const matchHora = texto.match(
+                    /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+)\s*(?:reais|real|conto|contos|pila|pilas)?\s*(?:a|por|\/|o)?\s*hora/i
+                );
+
+                // Captura preço por MINUTO: exige "custa" ou "valor de" OU "ou X o minuto"
+                // O "ou" ancora para não pegar números
+
+                // Captura preço por MINUTO — separado
+                const matchMinuto = texto.match(
+                    /\b(?:ou|e)\s+(?:R\$\s*)?([\d]+(?:[.,][\d]+)?)\s*(?:reais|real|centavos?)?\s*(?:a|por|\/|o)\s*minuto/i
+                );
+
+                // Define hora se encontrou
+                if (matchHora) {
+                    const raw = matchHora[1].replace(/\./g, '').replace(',', '.');
+                    precoPorHora = parseFloat(raw) || precoPorHora;
+                    // Deriva minuto da hora só se não tiver minuto explícito
+                    precoPorMinuto = precoPorHora / 60;
+                }
+
+                // Sobrescreve minuto se encontrou explícito (mais preciso)
+                if (matchMinuto) {
+                    const raw = matchMinuto[1].replace(/\./g, '').replace(',', '.');
+                    precoPorMinuto = parseFloat(raw) || precoPorMinuto;
+                }
+            });
+
+            return { precoPorHora, precoPorMinuto };
+        }
+
+        function detectarHoras(texto) {
+            let totalMinutos = 0;
+
+            // HORAS: exige que depois do número venha espaço + hora/horas/h
+            // Usa \b para não pegar "1" de "1,33"
+            const matchHora = texto.match(/\b(\d+)\s*(?:horas?|h\b)(?!\s*e?\s*\d*[.,]\d)/i);
+            if (matchHora) {
+                totalMinutos += parseFloat(matchHora[1]) * 60;
+            }
+
+            // MINUTOS: "30 minutos", "20 minutos", "30min"
+            const matchMinuto = texto.match(/\b(\d+[\d.,]*)\s*(?:minutos?|min\b)/i);
+            if (matchMinuto) {
+                totalMinutos += parseFloat(matchMinuto[1].replace(',', '.'));
+            }
+
+            return totalMinutos;
+        }
+
         function recalcularTotal(taskId) {
             const taskElement = document.querySelector(`[data-taskid="${taskId}"].edit-task-btn`)?.closest('.task-item');
+            debugCalculo(taskId);
             if (!taskElement) return;
 
-            const precoPorHora = detectarPrecoPorHora(taskElement);
+            const { precoPorHora, precoPorMinuto } = detectarPrecoPorHora(taskElement);
             const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
             let total = 0;
             let temValor = false;
@@ -4671,13 +4733,19 @@
                 const val = parseFloat(cb.getAttribute('data-value') || 0);
                 const stepElement = cb.closest('.task-step');
                 const texto = stepElement?.querySelector('.step-content')?.textContent || '';
-                const horas = detectarHoras(texto);
+                const totalMinutos = detectarHoras(texto);
 
-                // Calcula valor por hora se houver preço/hora definido na task
-                const valorHoras = (precoPorHora > 0 && horas > 0) ? precoPorHora * horas : 0;
+                let valorTempo = 0;
+                if (totalMinutos > 0) {
+                    // Separa horas inteiras e minutos restantes
+                    const horasInteiras = Math.floor(totalMinutos / 60);
+                    const minutosRestantes = totalMinutos % 60;
 
-                const valorFinal = val + valorHoras;
+                    // Calcula cada parte com seu preço correto
+                    valorTempo = (horasInteiras * precoPorHora) + (minutosRestantes * precoPorMinuto);
+                }
 
+                const valorFinal = val + valorTempo;
                 if (valorFinal > 0) temValor = true;
                 if (cb.checked && valorFinal > 0) total += valorFinal;
             });
@@ -4693,40 +4761,35 @@
                 });
             }
         }
+        function debugCalculo(taskId) {
+            const taskElement = document.querySelector(`[data-taskid="${taskId}"].edit-task-btn`)?.closest('.task-item');
+            if (!taskElement) return;
 
-        //funçao para detectar preço da hora no task atual
-        function detectarPrecoPorHora(taskElement) {
-            const steps = taskElement.querySelectorAll('.task-step');
-            let precoPorHora = 90; // padrão
+            const { precoPorHora, precoPorMinuto } = detectarPrecoPorHora(taskElement);
+            console.log('=== DEBUG CÁLCULO ===');
+            console.log('precoPorHora:', precoPorHora);
+            console.log('precoPorMinuto:', precoPorMinuto);
 
-            steps.forEach(step => {
-                const checkbox = step.querySelector('.task-step-checkbox');
-                if (!checkbox || !checkbox.checked) return;
+            const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
+            checkboxes.forEach((cb, i) => {
+                const texto = cb.closest('.task-step')?.querySelector('.step-content')?.textContent || '';
+                const totalMinutos = detectarHoras(texto);
+                const val = parseFloat(cb.getAttribute('data-value') || 0);
+                const horasInteiras = Math.floor(totalMinutos / 60);
+                const minutosRestantes = totalMinutos % 60;
+                const valorTempo = (horasInteiras * precoPorHora) + (minutosRestantes * precoPorMinuto);
 
-                const texto = step.querySelector('.step-content')?.textContent || '';
-
-                // Chave 1: "custa 90" ou "custa R$ 90" ou "custa 90 reais"
-                // Chave 2: "valor de 90" ou "valor de R$ 90" ou "valor de 90 reais"
-                const match = texto.match(
-                    /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+)/i
-                );
-
-                if (match) {
-                    const raw = match[1].replace(/\./g, '').replace(',', '.');
-                    precoPorHora = parseFloat(raw) || precoPorHora;
-                }
+                console.log(`--- Step ${i} ---`);
+                console.log('texto:', texto);
+                console.log('checked:', cb.checked);
+                console.log('data-value:', val);
+                console.log('totalMinutos detectados:', totalMinutos);
+                console.log('horasInteiras:', horasInteiras);
+                console.log('minutosRestantes:', minutosRestantes);
+                console.log('valorTempo calculado:', valorTempo);
+                console.log('valorFinal:', val + valorTempo);
             });
-
-            return precoPorHora;
         }
-
-        function detectarHoras(texto) {
-            // Detecta "2 horas", "1 hora", "3h"
-            const match = texto.match(/(\d+[\d.,]*)\s*(?:horas?|h\b)/i);
-            if (!match) return 0;
-            return parseFloat(match[1].replace(',', '.')) || 0;
-        }
-
         // ==================== NAVEGAÇÃO DE IMAGENS NO MODAL ====================
         function nextImage() {
             currentImageIndex = (currentImageIndex + 1) % modalImages.length;
