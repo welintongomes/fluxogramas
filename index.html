@@ -517,10 +517,11 @@
         .task-header {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
-            gap: 10px;
+            padding: 0px 1px;
+            gap: 0px;
             cursor: pointer;
             user-select: none;
+            justify-content: center;
         }
 
         .task-header:hover {
@@ -528,6 +529,7 @@
         }
 
         .task-name {
+            text-align: center;
             font-style: italic;
             padding: 5px 15px 0px 20px;
             flex: 1;
@@ -709,6 +711,14 @@
         .task-steps.collapsed {
             display: none;
         }
+
+        .task-total {
+            padding: 4px 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: none;
+        }
+
 
         @keyframes slideIn {
             from {
@@ -911,11 +921,11 @@
 
         /* Expand-all controls */
         .expand-all-controls {
-            top: 49px;
+            top: 50px;
             position: fixed;
             gap: 6px;
-            margin-bottom: 8px;
-            padding: 0 2px;
+            margin: 9px 50px 3px 55px;
+            padding: 0px;
         }
 
         .expand-all-controls button {
@@ -2394,8 +2404,6 @@
                 block: 'center'
             });
         }
-        // ==================== FUNÇÕES DE LISTAS ANINHADAS ====================
-
         // ==================== SISTEMA HÍBRIDO DE INDENTAÇÃO ====================
         // ==================== SISTEMA DE NÍVEIS POR NÚMERO ====================
         function detectIndentationLevel(line) {
@@ -2497,7 +2505,6 @@
 
                     saveTask(task);
                     clearCreateForm();
-                    // ===== ADICIONE ESTAS LINHAS =====
                     // Ocultar o formulário
                     const container = document.querySelector('.container');
                     const toggleBtn = document.getElementById('toggleContainerBtn');
@@ -3283,7 +3290,14 @@
                 const collapseIcon = hasChildren
                     ? `<span class="collapse-icon" onclick="toggleStepChildren(${taskId}, ${index}, event)" style="cursor: pointer; margin-right: 5px; user-select: none;">▶</span>`
                     : '<span style="margin-right: 5px; opacity: 0; width: 16px; display: inline-block;">▼</span>';
-
+                //aqui modifique para colocar mais formas de referir ao dinheiro se for preciso
+                const regexValores = /R\$\s*([\d.,]+)|(\d+[\d.,]*)\s*(reais|real|conto|contos|pila|pilas)/gi;
+                let stepValue = 0;
+                let match;
+                while ((match = regexValores.exec(step.text)) !== null) {
+                    const raw = (match[1] || match[2]).replace(/\./g, '').replace(',', '.');
+                    stepValue += parseFloat(raw) || 0;
+                }
                 html += `
             <div class="task-step ${step.completed ? 'completed' : ''}" 
                  data-level="${level}"
@@ -3293,10 +3307,11 @@
                  style="${extraStyle}${hideStyle}">
                 ${collapseIcon}
                 <input type="checkbox" 
-                       class="task-step-checkbox" 
-                       data-taskid="${taskId}" 
-                       data-stepindex="${index}" 
-                       ${step.completed ? 'checked' : ''}>
+       class="task-step-checkbox" 
+       data-taskid="${taskId}" 
+       data-stepindex="${index}"
+       data-value="${stepValue}"
+       ${step.completed ? 'checked' : ''}>
                 <div class="step-content">${step.text}</div>
             </div>
         `;
@@ -3470,9 +3485,15 @@
                 <div class="task-progress">
                     <div class="progress-bar" style="width: ${progressPercentage}%"></div>
                 </div>
-                <div class="task-info">
-                    <small>Progresso: ${completedSteps}/${totalSteps} (${Math.round(progressPercentage)}%)</small>
+                <div class="task-header">
+                    <div class="task-info">
+                        <small>Progresso: ${completedSteps}/${totalSteps} (${Math.round(progressPercentage)}%)</small>
+                    </div>
+                    <div class="task-total" id="total-${task.id}">
+                        💰 <strong id="total-value-${task.id}">R$ 0,00</strong>
+                    </div>
                 </div>
+
 
                 <div class="task-steps-wrapper">
                     <div class="task-steps ${isExpanded ? '' : 'collapsed'}">
@@ -3673,6 +3694,7 @@
                 showStatusMessage('Erro ao obter o cronograma', 'error');
                 loadTasks();
             };
+            recalcularTotal(taskId);
         }
 
         function handleTaskStepClick(event) {
@@ -3809,6 +3831,7 @@
                 // Recolher todos os steps (exceto nível 0) ao expandir
                 setTimeout(() => {
                     collapseAllSteps(taskId);
+                    recalcularTotal(taskId);
                     focusPendingStep(taskElement);
                 }, 50);
 
@@ -4633,6 +4656,75 @@
                     }
                 });
             }
+        }
+
+        function recalcularTotal(taskId) {
+            const taskElement = document.querySelector(`[data-taskid="${taskId}"].edit-task-btn`)?.closest('.task-item');
+            if (!taskElement) return;
+
+            const precoPorHora = detectarPrecoPorHora(taskElement);
+            const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
+            let total = 0;
+            let temValor = false;
+
+            checkboxes.forEach(cb => {
+                const val = parseFloat(cb.getAttribute('data-value') || 0);
+                const stepElement = cb.closest('.task-step');
+                const texto = stepElement?.querySelector('.step-content')?.textContent || '';
+                const horas = detectarHoras(texto);
+
+                // Calcula valor por hora se houver preço/hora definido na task
+                const valorHoras = (precoPorHora > 0 && horas > 0) ? precoPorHora * horas : 0;
+
+                const valorFinal = val + valorHoras;
+
+                if (valorFinal > 0) temValor = true;
+                if (cb.checked && valorFinal > 0) total += valorFinal;
+            });
+
+            const totalDiv = document.getElementById(`total-${taskId}`);
+            const totalValue = document.getElementById(`total-value-${taskId}`);
+
+            if (totalDiv && totalValue) {
+                totalDiv.style.display = temValor ? 'block' : 'none';
+                totalValue.textContent = total.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                });
+            }
+        }
+
+        //funçao para detectar preço da hora no task atual
+        function detectarPrecoPorHora(taskElement) {
+            const steps = taskElement.querySelectorAll('.task-step');
+            let precoPorHora = 90; // padrão
+
+            steps.forEach(step => {
+                const checkbox = step.querySelector('.task-step-checkbox');
+                if (!checkbox || !checkbox.checked) return;
+
+                const texto = step.querySelector('.step-content')?.textContent || '';
+
+                // Chave 1: "custa 90" ou "custa R$ 90" ou "custa 90 reais"
+                // Chave 2: "valor de 90" ou "valor de R$ 90" ou "valor de 90 reais"
+                const match = texto.match(
+                    /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+)/i
+                );
+
+                if (match) {
+                    const raw = match[1].replace(/\./g, '').replace(',', '.');
+                    precoPorHora = parseFloat(raw) || precoPorHora;
+                }
+            });
+
+            return precoPorHora;
+        }
+
+        function detectarHoras(texto) {
+            // Detecta "2 horas", "1 hora", "3h"
+            const match = texto.match(/(\d+[\d.,]*)\s*(?:horas?|h\b)/i);
+            if (!match) return 0;
+            return parseFloat(match[1].replace(',', '.')) || 0;
         }
 
         // ==================== NAVEGAÇÃO DE IMAGENS NO MODAL ====================
