@@ -3293,7 +3293,7 @@
                     : '<span style="margin-right: 5px; opacity: 0; width: 16px; display: inline-block;">▼</span>';
                 //aqui modifique para colocar mais formas de referir ao dinheiro se for preciso
                 // Detecta se é um step de configuração de preço
-                const isPriceConfig = /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*(?:a|por|\/|o)?\s*hora/i.test(step.text);
+               const isPriceConfig = /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*?(?:(?:a|por|\/|o)\s*hora|(?:a|por|\/|o)\s*minuto)/i.test(step.text);
 
                 const regexValores = /R\$\s*([\d.,]+)|(\d+[\d.,]*)\s*(reais|real|conto|contos|pila|pilas)/gi;
                 let stepValue = 0;
@@ -3737,9 +3737,9 @@
             const stepElement = stepCheckbox.closest('.task-step');
 
             // LOG TEMPORÁRIO
-            console.log('=== DEBUG PROGRESSO ===');
-            console.log('data-is-price-config:', stepElement?.getAttribute('data-is-price-config'));
-            console.log('texto do step:', stepElement?.querySelector('.step-content')?.textContent);
+            // console.log('=== DEBUG PROGRESSO ===');
+            // console.log('data-is-price-config:', stepElement?.getAttribute('data-is-price-config'));
+            // console.log('texto do step:', stepElement?.querySelector('.step-content')?.textContent);
 
             // Se é step de configuração de preço, não faz nada no progresso
             if (stepElement?.getAttribute('data-is-price-config') === 'true') {
