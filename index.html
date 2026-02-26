@@ -3291,6 +3291,9 @@
                     ? `<span class="collapse-icon" onclick="toggleStepChildren(${taskId}, ${index}, event)" style="cursor: pointer; margin-right: 5px; user-select: none;">▶</span>`
                     : '<span style="margin-right: 5px; opacity: 0; width: 16px; display: inline-block;">▼</span>';
                 //aqui modifique para colocar mais formas de referir ao dinheiro se for preciso
+                // Detecta se é um step de configuração de preço
+                const isPriceConfig = /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*(?:a|por|\/|o)?\s*hora/i.test(step.text);
+
                 const regexValores = /R\$\s*([\d.,]+)|(\d+[\d.,]*)\s*(reais|real|conto|contos|pila|pilas)/gi;
                 let stepValue = 0;
                 let match;
@@ -3299,22 +3302,23 @@
                     stepValue += parseFloat(raw) || 0;
                 }
                 html += `
-            <div class="task-step ${step.completed ? 'completed' : ''}" 
-                 data-level="${level}"
-                 data-step-index="${index}"
-                 data-has-children="${hasChildren}"
-                 data-task-id="${taskId}"
-                 style="${extraStyle}${hideStyle}">
-                ${collapseIcon}
-                <input type="checkbox" 
-       class="task-step-checkbox" 
-       data-taskid="${taskId}" 
-       data-stepindex="${index}"
-       data-value="${stepValue}"
-       ${step.completed ? 'checked' : ''}>
-                <div class="step-content">${step.text}</div>
-            </div>
-        `;
+                <div class="task-step ${step.completed ? 'completed' : ''}" 
+                    data-level="${level}"
+                    data-step-index="${index}"
+                    data-has-children="${hasChildren}"
+                    data-task-id="${taskId}"
+                    data-is-price-config="${isPriceConfig}"
+                    style="${extraStyle}${hideStyle}">
+                    ${collapseIcon}
+                    <input type="checkbox" 
+                    class="task-step-checkbox" 
+                    data-taskid="${taskId}" 
+                    data-stepindex="${index}"
+                    data-value="${isPriceConfig ? 0 : stepValue}"
+                    ${step.completed ? 'checked' : ''}>
+                    <div class="step-content">${step.text}</div>
+                </div>
+                `;
             });
 
             return html;
@@ -3462,8 +3466,11 @@
                 const isExpanded = expandedTasks.has(task.id);
                 taskElement.className = `task-item ${task.completed ? 'completed' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`;
 
-                const completedSteps = task.steps.filter(step => step.completed).length;
-                const totalSteps = task.steps.length;
+                const isPriceConfig = (step) =>
+                    /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*(?:a|por|\/|o)?\s*hora/i.test(step.text);
+
+                const completedSteps = task.steps.filter(step => step.completed && !isPriceConfig(step)).length;
+                const totalSteps = task.steps.filter(step => !isPriceConfig(step)).length;
                 const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
                 taskElement.innerHTML = `
@@ -3724,8 +3731,20 @@
             const taskElement = document.querySelector(`[data-taskid="${taskId}"].edit-task-btn`).closest('.task-item');
             if (!taskElement) return;
 
+
             const stepCheckbox = taskElement.querySelector(`[data-stepindex="${stepIndex}"]`);
             const stepElement = stepCheckbox.closest('.task-step');
+
+            // LOG TEMPORÁRIO
+            console.log('=== DEBUG PROGRESSO ===');
+            console.log('data-is-price-config:', stepElement?.getAttribute('data-is-price-config'));
+            console.log('texto do step:', stepElement?.querySelector('.step-content')?.textContent);
+
+            // Se é step de configuração de preço, não faz nada no progresso
+            if (stepElement?.getAttribute('data-is-price-config') === 'true') {
+                recalcularTotal(taskId);
+                return;
+            }
 
             if (completed) {
                 stepElement.classList.add('completed');
@@ -3733,10 +3752,12 @@
                 stepElement.classList.remove('completed');
             }
 
-            const allSteps = taskElement.querySelectorAll('.task-step-checkbox');
-            const completedSteps = taskElement.querySelectorAll('.task-step-checkbox:checked');
+            // Ignora steps de preço na contagem
+            const allSteps = Array.from(taskElement.querySelectorAll('.task-step-checkbox'))
+                .filter(cb => cb.closest('.task-step')?.getAttribute('data-is-price-config') !== 'true');
+
+            const completedCount = allSteps.filter(cb => cb.checked).length;
             const totalSteps = allSteps.length;
-            const completedCount = completedSteps.length;
             const progressPercentage = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
             const progressBar = taskElement.querySelector('.progress-bar');
@@ -3754,6 +3775,8 @@
             } else {
                 taskElement.classList.remove('completed');
             }
+
+            recalcularTotal(taskId);
         }
 
         function closeAllOtherTasks(currentTaskId) {
@@ -4660,8 +4683,8 @@
 
         function detectarPrecoPorHora(taskElement) {
             const steps = taskElement.querySelectorAll('.task-step');
-            let precoPorHora = 90;
-            let precoPorMinuto = 90 / 60;
+            let precoPorHora = 0;
+            let precoPorMinuto = 0 / 60;
 
             steps.forEach(step => {
                 const checkbox = step.querySelector('.task-step-checkbox');
@@ -4721,7 +4744,6 @@
 
         function recalcularTotal(taskId) {
             const taskElement = document.querySelector(`[data-taskid="${taskId}"].edit-task-btn`)?.closest('.task-item');
-            debugCalculo(taskId);
             if (!taskElement) return;
 
             const { precoPorHora, precoPorMinuto } = detectarPrecoPorHora(taskElement);
@@ -4732,6 +4754,9 @@
             checkboxes.forEach(cb => {
                 const val = parseFloat(cb.getAttribute('data-value') || 0);
                 const stepElement = cb.closest('.task-step');
+                // Ignorar steps de configuração de preço
+                if (stepElement?.getAttribute('data-is-price-config') === 'true') return;
+
                 const texto = stepElement?.querySelector('.step-content')?.textContent || '';
                 const totalMinutos = detectarHoras(texto);
 
@@ -4761,35 +4786,35 @@
                 });
             }
         }
-        function debugCalculo(taskId) {
-            const taskElement = document.querySelector(`[data-taskid="${taskId}"].edit-task-btn`)?.closest('.task-item');
-            if (!taskElement) return;
+        // function debugCalculo(taskId) {
+        //     const taskElement = document.querySelector(`[data-taskid="${taskId}"].edit-task-btn`)?.closest('.task-item');
+        //     if (!taskElement) return;
 
-            const { precoPorHora, precoPorMinuto } = detectarPrecoPorHora(taskElement);
-            console.log('=== DEBUG CÁLCULO ===');
-            console.log('precoPorHora:', precoPorHora);
-            console.log('precoPorMinuto:', precoPorMinuto);
+        //     const { precoPorHora, precoPorMinuto } = detectarPrecoPorHora(taskElement);
+        //     console.log('=== DEBUG CÁLCULO ===');
+        //     console.log('precoPorHora:', precoPorHora);
+        //     console.log('precoPorMinuto:', precoPorMinuto);
 
-            const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
-            checkboxes.forEach((cb, i) => {
-                const texto = cb.closest('.task-step')?.querySelector('.step-content')?.textContent || '';
-                const totalMinutos = detectarHoras(texto);
-                const val = parseFloat(cb.getAttribute('data-value') || 0);
-                const horasInteiras = Math.floor(totalMinutos / 60);
-                const minutosRestantes = totalMinutos % 60;
-                const valorTempo = (horasInteiras * precoPorHora) + (minutosRestantes * precoPorMinuto);
+        //     const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
+        //     checkboxes.forEach((cb, i) => {
+        //         const texto = cb.closest('.task-step')?.querySelector('.step-content')?.textContent || '';
+        //         const totalMinutos = detectarHoras(texto);
+        //         const val = parseFloat(cb.getAttribute('data-value') || 0);
+        //         const horasInteiras = Math.floor(totalMinutos / 60);
+        //         const minutosRestantes = totalMinutos % 60;
+        //         const valorTempo = (horasInteiras * precoPorHora) + (minutosRestantes * precoPorMinuto);
 
-                console.log(`--- Step ${i} ---`);
-                console.log('texto:', texto);
-                console.log('checked:', cb.checked);
-                console.log('data-value:', val);
-                console.log('totalMinutos detectados:', totalMinutos);
-                console.log('horasInteiras:', horasInteiras);
-                console.log('minutosRestantes:', minutosRestantes);
-                console.log('valorTempo calculado:', valorTempo);
-                console.log('valorFinal:', val + valorTempo);
-            });
-        }
+        //         console.log(`--- Step ${i} ---`);
+        //         console.log('texto:', texto);
+        //         console.log('checked:', cb.checked);
+        //         console.log('data-value:', val);
+        //         console.log('totalMinutos detectados:', totalMinutos);
+        //         console.log('horasInteiras:', horasInteiras);
+        //         console.log('minutosRestantes:', minutosRestantes);
+        //         console.log('valorTempo calculado:', valorTempo);
+        //         console.log('valorFinal:', val + valorTempo);
+        //     });
+        // }
         // ==================== NAVEGAÇÃO DE IMAGENS NO MODAL ====================
         function nextImage() {
             currentImageIndex = (currentImageIndex + 1) % modalImages.length;
