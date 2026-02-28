@@ -537,9 +537,8 @@
             font-weight: 600;
             color: var(--text-primary);
             letter-spacing: -0.2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: break-spaces;
+            /* text-overflow: ellipsis; */
         }
 
         /* Task actions */
@@ -1474,9 +1473,11 @@
             }
 
             .task-name {
+                white-space: nowrap;
                 font-style: italic;
                 padding: 5px 10px 0px 20px;
                 font-size: 16px;
+                overflow: scroll;
             }
 
             .modal-content {
