@@ -1912,7 +1912,7 @@
             recognition.maxAlternatives = 1;
 
             recognition.onstart = function () {
-                console.log('Reconhecimento de voz iniciado');
+                // console.log('Reconhecimento de voz iniciado');
                 if (!isEditModalRecording) {
                     showAudioStatus('🎤 Escutando... Fale agora!', 'listening');
                 }
@@ -1945,7 +1945,7 @@
             };
 
             recognition.onend = function () {
-                console.log('Reconhecimento de voz finalizado');
+                // console.log('Reconhecimento de voz finalizado');
                 stopRecording();
                 stopEditModalRecording();
                 hideAudioStatus();
@@ -2003,7 +2003,7 @@
 
                 recognition.onresult = function (event) {
                     const transcript = event.results[0][0].transcript.trim();
-                    console.log('Texto reconhecido na tela principal:', transcript);
+                    // console.log('Texto reconhecido na tela principal:', transcript);
 
                     if (transcript) {
                         handleAudioInput(transcript);
@@ -2102,7 +2102,7 @@
 
                 recognition.onresult = function (event) {
                     const transcript = event.results[0][0].transcript.trim();
-                    console.log('Texto reconhecido no modal:', transcript);
+                    // console.log('Texto reconhecido no modal:', transcript);
 
                     if (transcript) {
                         handleEditModalAudioInput(transcript);
@@ -3274,8 +3274,12 @@
         // ==================== SISTEMA DE COLAPSO DE NÍVEIS ====================
 
         // Adicione esta função ANTES do renderTasks()
-        function renderStepsWithCollapse(steps, taskId) {
+        function renderStepsWithCollapse(steps, taskId, isQuiz = false) {
             let html = '';
+
+            if (isQuiz) {
+                steps = embaralharRespostas(steps);
+            }
 
             steps.forEach((step, index) => {
                 const level = step.level || 0;
@@ -3299,12 +3303,27 @@
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*?(?:a|por|\/|o)\s*hora/i.test(step.text) ||
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*?(?:a|por|\/|o)\s*minuto/i.test(step.text)
                 );
-                const regexValores = /R\$\s*([\d.,]+)|(\d+[\d.,]*)\s*(reais|real|conto|contos|pila|pilas)/gi;
+                const isRespostaCerta = isQuiz && step.text.includes('✓');
+                const textoExibido = isQuiz ? step.text.replace('✓', '').trim() : step.text;
+                // Captura APENAS valores com R$ ou palavra monetária explícita
+                // Não pega números soltos como "1 hora" ou "30 minutos"
+                const regexVal2 = /([+-])?\s*(?:R\$\s*([\d.,]+)|([\d.,]+)\s*(?:reais|real|conto|contos|pila|pilas)\b)/gi;
                 let stepValue = 0;
-                let match;
-                while ((match = regexValores.exec(step.text)) !== null) {
-                    const raw = (match[1] || match[2]).replace(/\./g, '').replace(',', '.');
-                    stepValue += parseFloat(raw) || 0;
+                let stepPercent = 0;
+
+                while ((match = regexVal2.exec(step.text)) !== null) {
+                    const sinal = match[1] === '-' ? -1 : 1;
+                    const raw = (match[2] || match[3]).replace(/\./g, '').replace(',', '.');
+                    const valor = parseFloat(raw) || 0;
+                    if (valor > 0) stepValue += sinal * valor;
+                }
+
+                // Captura porcentagens com sinal
+                const regexPct = /([+-])\s*([\d.,]+)\s*%/gi;
+                while ((match = regexPct.exec(step.text)) !== null) {
+                    const sinal = match[1] === '-' ? -1 : 1;
+                    const raw = match[2].replace(',', '.');
+                    stepPercent += sinal * (parseFloat(raw) || 0);
                 }
                 html += `
                 <div class="task-step ${step.completed ? 'completed' : ''}" 
@@ -3320,8 +3339,10 @@
                     data-taskid="${taskId}" 
                     data-stepindex="${index}"
                     data-value="${isPriceConfig ? 0 : stepValue}"
+                    data-is-resposta-certa="${isRespostaCerta}"
+                    data-percent="${isPriceConfig ? 0 : stepPercent}"
                     ${step.completed ? 'checked' : ''}>
-                    <div class="step-content">${step.text}</div>
+                   <div class="step-content">${textoExibido}</div>
                 </div>
                 `;
             });
@@ -3347,28 +3368,30 @@
             const isCollapsed = icon.textContent === '▶';
 
             if (isCollapsed) {
-                // ===== OCULTAR IRMÃOS E TODOS OS SEUS DESCENDENTES =====
-                steps.forEach((step, idx) => {
-                    const stepLevel = parseInt(step.getAttribute('data-level'));
+                const taskElement = clickedStep.closest('.task-item');
+                const isQuiz = /\[QUIZ\]/i.test(taskElement?.querySelector('.task-name')?.textContent || '');
 
-                    // É irmão (mesmo nível, não é o clicado)
-                    if (stepLevel === clickedLevel && idx !== stepIndex) {
-                        // 🔴 OCULTAR O PRÓPRIO IRMÃO
-                        step.style.display = 'none';
-                        const stepIcon = step.querySelector('.collapse-icon');
-                        if (stepIcon) stepIcon.textContent = '▶';
+                if (!isQuiz) {
+                    // ===== OCULTAR IRMÃOS E TODOS OS SEUS DESCENDENTES =====
+                    steps.forEach((step, idx) => {
+                        const stepLevel = parseInt(step.getAttribute('data-level'));
 
-                        // 🔴 OCULTAR TODOS OS DESCENDENTES DO IRMÃO
-                        for (let i = idx + 1; i < steps.length; i++) {
-                            const childLevel = parseInt(steps[i].getAttribute('data-level'));
-                            if (childLevel <= stepLevel) break;
-                            steps[i].style.display = 'none';
-                            const childIcon = steps[i].querySelector('.collapse-icon');
-                            if (childIcon) childIcon.textContent = '▶';
+                        if (stepLevel === clickedLevel && idx !== stepIndex) {
+                            step.style.display = 'none';
+                            const stepIcon = step.querySelector('.collapse-icon');
+                            if (stepIcon) stepIcon.textContent = '▶';
+
+                            for (let i = idx + 1; i < steps.length; i++) {
+                                const childLevel = parseInt(steps[i].getAttribute('data-level'));
+                                if (childLevel <= stepLevel) break;
+                                steps[i].style.display = 'none';
+                                const childIcon = steps[i].querySelector('.collapse-icon');
+                                if (childIcon) childIcon.textContent = '▶';
+                            }
                         }
-                    }
-                });
-                // SUBSTITUA o setTimeout problemático por:
+                    });
+                }
+
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         const taskStepsEl = clickedStep.closest('.task-steps');
@@ -3467,6 +3490,7 @@
             }
 
             tasks.forEach(task => {
+                const isQuiz = /\[QUIZ\]/i.test(task.name);
                 const taskElement = document.createElement('div');
                 const isExpanded = expandedTasks.has(task.id);
                 taskElement.className = `task-item ${task.completed ? 'completed' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`;
@@ -3474,8 +3498,14 @@
                 const isPriceConfig = (step) =>
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*(?:a|por|\/|o)?\s*hora/i.test(step.text);
 
-                const completedSteps = task.steps.filter(step => step.completed && !isPriceConfig(step)).length;
-                const totalSteps = task.steps.filter(step => !isPriceConfig(step)).length;
+                const isQuizResposta = (step) => isQuiz && step.level > 0;
+
+                const completedSteps = task.steps.filter(step =>
+                    step.completed && !isPriceConfig(step) && !isQuizResposta(step)
+                ).length;
+                const totalSteps = task.steps.filter(step =>
+                    !isPriceConfig(step) && !isQuizResposta(step)
+                ).length;
                 const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
                 taskElement.innerHTML = `
@@ -3501,10 +3531,15 @@
                     <div class="task-info">
                         <small>Progresso: ${completedSteps}/${totalSteps} (${Math.round(progressPercentage)}%)</small>
                     </div>
-                    <div class="task-total" id="total-${task.id}" style="display:none;">
-                        💰 <strong id="total-value-${task.id}">R$ 0,00</strong>
+                        ${!isQuiz ? `
+                        <div class="task-total" id="total-${task.id}" style="display:none;">
+                            💰 <strong id="total-value-${task.id}">R$ 0,00</strong>
+                        </div>
+                        ` : ''}
+                        <div class="task-placar" id="placar-${task.id}" style="display:none; padding:4px 20px; font-size:13px;">
+                            🏆 Placar: <strong id="placar-value-${task.id}">0</strong> pontos
+                        </div>
                     </div>
-                </div>
 
 
                 <div class="task-steps-wrapper">
@@ -3518,7 +3553,7 @@
                         ▶ Recolher Tudo
                     </button>
                 </div>
-                        ${renderStepsWithCollapse(task.steps, task.id)}
+                        ${renderStepsWithCollapse(task.steps, task.id, isQuiz)}
                     </div>
                 </div>
                 <div class="task-local-search">
@@ -3707,6 +3742,8 @@
                 loadTasks();
             };
             recalcularTotal(taskId);
+            recalcularPlacar(parseInt(taskId));
+
         }
 
         function handleTaskStepClick(event) {
@@ -3782,6 +3819,7 @@
             }
 
             recalcularTotal(taskId);
+            recalcularPlacar(taskId);
         }
 
         function closeAllOtherTasks(currentTaskId) {
@@ -3857,10 +3895,34 @@
                 expandText.textContent = 'Recolher';
 
                 // Recolher todos os steps (exceto nível 0) ao expandir
+                // setTimeout(() => {
+                //     collapseAllSteps(taskId);
+                //     recalcularTotal(taskId);
+                //     focusPendingStep(taskElement);
+                // }, 50);
+
                 setTimeout(() => {
-                    collapseAllSteps(taskId);
-                    recalcularTotal(taskId);
-                    focusPendingStep(taskElement);
+                    const isQuiz = /\[QUIZ\]/i.test(taskElement.querySelector('.task-name')?.textContent || '');
+                    if (isQuiz) {
+                        const task = tasks.find(t => t.id === taskId);
+                        if (task) {
+                            const stepsContainer = taskElement.querySelector('.task-steps');
+                            const expandControls = stepsContainer.querySelector('.expand-all-controls');
+                            stepsContainer.innerHTML = expandControls.outerHTML + renderStepsWithCollapse(task.steps, task.id, true);
+
+                            stepsContainer.querySelectorAll('.task-step-checkbox').forEach(cb => {
+                                cb.addEventListener('change', toggleStepCompletion);
+                            });
+                            stepsContainer.querySelectorAll('.task-step').forEach(step => {
+                                step.addEventListener('click', handleTaskStepClick);
+                            });
+                        }
+                        collapseAllSteps(taskId);
+                    } else {
+                        collapseAllSteps(taskId);
+                        recalcularTotal(taskId);
+                        focusPendingStep(taskElement);
+                    }
                 }, 50);
 
                 // Scroll suave até a tarefa
@@ -4686,6 +4748,92 @@
             }
         }
 
+        function embaralharRespostas(steps) {
+            const resultado = [];
+            let i = 0;
+
+            while (i < steps.length) {
+                const step = steps[i];
+                const levelAtual = step.level;
+
+                // Coleta filhos diretos (respostas)
+                const filhos = [];
+                let j = i + 1;
+                while (j < steps.length && steps[j].level > levelAtual) {
+                    filhos.push(steps[j]);
+                    j++;
+                }
+
+                resultado.push(step);
+
+                if (filhos.length > 0) {
+                    // Separa filhos diretos dos mais profundos
+                    const filhosDiretos = filhos.filter(s => s.level === levelAtual + 1);
+                    const maisProftundos = filhos.filter(s => s.level > levelAtual + 1);
+
+                    // Embaralha apenas filhos diretos
+                    for (let k = filhosDiretos.length - 1; k > 0; k--) {
+                        const r = Math.floor(Math.random() * (k + 1));
+                        [filhosDiretos[k], filhosDiretos[r]] = [filhosDiretos[r], filhosDiretos[k]];
+                    }
+
+                    // Adiciona filhos diretos embaralhados
+                    filhosDiretos.forEach(filho => {
+                        resultado.push(filho);
+                        // Adiciona filhos mais profundos que pertencem a este filho
+                        maisProftundos.forEach(neto => {
+                            if (neto.level > filho.level) {
+                                resultado.push(neto);
+                            }
+                        });
+                    });
+                }
+
+                i = j;
+            }
+
+            return resultado;
+        }
+
+        function recalcularPlacar(taskId) {
+            const taskElement = document.querySelector(`[data-taskid="${taskId}"].edit-task-btn`)?.closest('.task-item');
+            if (!taskElement) return;
+
+            const isQuiz = /\[QUIZ\]/i.test(taskElement.querySelector('.task-name')?.textContent || '');
+            if (!isQuiz) return;
+
+            const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
+            let placar = 0;
+            let temResposta = false;
+
+            checkboxes.forEach(cb => {
+                if (!cb.checked) return;
+
+                const stepEl = cb.closest('.task-step');
+                const isRespostaCerta = cb.getAttribute('data-is-resposta-certa') === 'true';
+
+                temResposta = true;
+
+                if (isRespostaCerta) {
+                    placar += 1;
+                    stepEl.style.background = 'rgba(52, 199, 89, 0.2)';
+                    stepEl.style.borderLeft = '3px solid #34C759';
+                } else {
+                    placar -= 1;
+                    stepEl.style.background = 'rgba(255, 59, 48, 0.2)';
+                    stepEl.style.borderLeft = '3px solid #FF3B30';
+                }
+            });
+
+            const placarDiv = document.getElementById(`placar-${taskId}`);
+            const placarValue = document.getElementById(`placar-value-${taskId}`);
+
+            if (placarDiv && placarValue) {
+                placarDiv.style.display = temResposta ? 'block' : 'none';
+                placarValue.textContent = placar > 0 ? `+${placar}` : `${placar}`;
+                placarValue.style.color = placar > 0 ? '#34C759' : placar < 0 ? '#FF3B30' : 'var(--text-secondary)';
+            }
+        }
         function detectarPrecoPorHora(taskElement) {
             const steps = taskElement.querySelectorAll('.task-step');
             let precoPorHora = null;
@@ -4730,7 +4878,7 @@
                 precoPorMinuto = 90 / 60;
             }
 
-            console.log('precoPorHora:', precoPorHora, 'precoPorMinuto:', precoPorMinuto);
+            // console.log('precoPorHora:', precoPorHora, 'precoPorMinuto:', precoPorMinuto);
             return { precoPorHora, precoPorMinuto };
         }
 
@@ -4759,47 +4907,51 @@
 
             const { precoPorHora, precoPorMinuto } = detectarPrecoPorHora(taskElement);
             const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
-            let total = 0;
+            let subtotal = 0;
+            let percentualTotal = 0;
             let temValor = false;
 
             checkboxes.forEach(cb => {
-                const val = parseFloat(cb.getAttribute('data-value') || 0);
-                const stepElement = cb.closest('.task-step');
-                // Ignorar steps de configuração de preço
-                if (stepElement?.getAttribute('data-is-price-config') === 'true') return;
+                const stepEl = cb.closest('.task-step');
+                if (stepEl?.getAttribute('data-is-price-config') === 'true') return;
 
-                const texto = stepElement?.querySelector('.step-content')?.textContent || '';
+                const val = parseFloat(cb.getAttribute('data-value') || 0);
+                const pct = parseFloat(cb.getAttribute('data-percent') || 0);
+                const texto = stepEl?.querySelector('.step-content')?.textContent || '';
                 const totalMinutos = detectarHoras(texto);
 
                 let valorTempo = 0;
                 if (totalMinutos > 0) {
-                    // Separa horas inteiras e minutos restantes
                     const horasInteiras = Math.floor(totalMinutos / 60);
                     const minutosRestantes = totalMinutos % 60;
-
-                    // Calcula cada parte com seu preço correto
                     valorTempo = (horasInteiras * precoPorHora) + (minutosRestantes * precoPorMinuto);
                 }
 
-                const valorFinal = val + valorTempo;
-                if (valorFinal > 0) temValor = true;
-                if (cb.checked && valorFinal > 0) total += valorFinal;
+                if (cb.checked) {
+                    if (val !== 0 || valorTempo > 0) temValor = true;
+                    if (pct !== 0) temValor = true;
+                    subtotal += val + valorTempo;
+                    percentualTotal += pct;
+                }
             });
+
+            // Aplica porcentagens sobre o subtotal
+            const total = subtotal * (1 + percentualTotal / 100);
 
             const totalDiv = document.getElementById(`total-${taskId}`);
             const totalValue = document.getElementById(`total-value-${taskId}`);
 
             if (totalDiv && totalValue) {
-                // Só mostra se total > 0 (algo com valor foi marcado)
-                if (total > 0) {
+                if (total !== 0 && temValor) {
                     totalDiv.style.display = 'block';
                     totalValue.textContent = total.toLocaleString('pt-BR', {
                         style: 'currency',
                         currency: 'BRL'
                     });
+                    // Cor vermelha se desconto deixou negativo
+                    totalValue.style.color = total < 0 ? '#FF3B30' : '';
                 } else {
                     totalDiv.style.display = 'none';
-                    totalValue.textContent = 'R$ 0,00';
                 }
             }
         }
@@ -5330,9 +5482,9 @@
                 `;
             document.head.appendChild(style);
 
-            console.log('Dispositivo detectado:', isMobileDevice() ? 'Mobile' : 'Desktop');
-            console.log('Pausa após título:', PAUSE_AFTER_TITLE + 'ms');
-            console.log('Pausa entre steps:', PAUSE_BETWEEN_STEPS + 'ms');
+            // console.log('Dispositivo detectado:', isMobileDevice() ? 'Mobile' : 'Desktop');
+            // console.log('Pausa após título:', PAUSE_AFTER_TITLE + 'ms');
+            // console.log('Pausa entre steps:', PAUSE_BETWEEN_STEPS + 'ms');
             // ===== ATALHOS DE TECLADO PARA MARCADORES =====
             const taskStepsInput = document.getElementById('taskSteps');
             const editTaskStepsInput = document.getElementById('editTaskSteps');
