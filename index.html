@@ -3499,13 +3499,24 @@
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*(?:a|por|\/|o)?\s*hora/i.test(step.text);
 
                 const isQuizResposta = (step) => isQuiz && step.level > 0;
+                const isQuizRespostaCerta = (step) => isQuiz && step.level > 0 && step.text.includes('✓');
 
-                const completedSteps = task.steps.filter(step =>
-                    step.completed && !isPriceConfig(step) && !isQuizResposta(step)
-                ).length;
-                const totalSteps = task.steps.filter(step =>
-                    !isPriceConfig(step) && !isQuizResposta(step)
-                ).length;
+                const completedSteps = isQuiz
+                    ? task.steps.filter(step =>
+                        step.completed && (!isQuizResposta(step) || isQuizRespostaCerta(step))
+                    ).length
+                    : task.steps.filter(step =>
+                        step.completed && !isPriceConfig(step)
+                    ).length;
+
+                const totalSteps = isQuiz
+                    ? task.steps.filter(step =>
+                        !isQuizResposta(step) || isQuizRespostaCerta(step)
+                    ).length
+                    : task.steps.filter(step =>
+                        !isPriceConfig(step)
+                    ).length;
+
                 const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
                 taskElement.innerHTML = `
@@ -3795,8 +3806,20 @@
             }
 
             // Ignora steps de preço na contagem
+            const isQuiz = /\[QUIZ\]/i.test(taskElement.querySelector('.task-name')?.textContent || '');
+
             const allSteps = Array.from(taskElement.querySelectorAll('.task-step-checkbox'))
-                .filter(cb => cb.closest('.task-step')?.getAttribute('data-is-price-config') !== 'true');
+                .filter(cb => {
+                    const stepEl = cb.closest('.task-step');
+                    if (stepEl?.getAttribute('data-is-price-config') === 'true') return false;
+                    if (isQuiz) {
+                        const level = parseInt(stepEl?.getAttribute('data-level') || 0);
+                        const isRespostaCerta = cb.getAttribute('data-is-resposta-certa') === 'true';
+                        // No QUIZ conta apenas perguntas (level 0) e respostas certas
+                        return level === 0 || isRespostaCerta;
+                    }
+                    return true;
+                });
 
             const completedCount = allSteps.filter(cb => cb.checked).length;
             const totalSteps = allSteps.length;
@@ -4810,6 +4833,11 @@
                 if (!cb.checked) return;
 
                 const stepEl = cb.closest('.task-step');
+                const level = parseInt(stepEl?.getAttribute('data-level') || 0);
+
+                // IGNORA perguntas (level 0) — só conta respostas (level > 0)
+                if (level === 0) return;
+
                 const isRespostaCerta = cb.getAttribute('data-is-resposta-certa') === 'true';
 
                 temResposta = true;
