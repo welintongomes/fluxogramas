@@ -947,7 +947,7 @@
             display: flex;
             overflow-x: auto;
             gap: 8px;
-            padding: 8px 16px;
+            padding: 41px 0px 0px 16px;
             scrollbar-width: thin;
         }
 
@@ -1477,7 +1477,8 @@
                 white-space: nowrap;
                 font-style: italic;
                 padding: 5px 10px 0px 20px;
-                font-size: 16px;
+                font-size: 20px;
+                font-weight: bolder;
                 overflow: scroll;
             }
 
@@ -3513,23 +3514,14 @@
 
                 taskElement.innerHTML = `
             <div class="task-content">
-                ${(task.images && task.images.length > 0) || task.image ? `
-                    <div class="task-image-container">
-                        <div class="task-images-scroll ${task.images?.length === 1 ? 'single-image' : ''}" style="display: none;">
-                            ${(task.images && task.images.length > 0)
-                            ? task.images.map((img, index) => `
-                                    <img src="${img}" alt="Imagem ${index + 1}" class="scroll-image">
-                                `).join('')
-                            : `<img src="${task.image}" alt="Imagem do cronograma" class="scroll-image">`}
-                        </div>
-                    </div>
-                ` : ''}
+                
 
                 <div class="task-name">${task.highlighted || task.name}</div>
 
                 <div class="task-progress">
                     <div class="progress-bar" style="width: ${progressPercentage}%"></div>
                 </div>
+                
                 <div class="task-header">
                     <div class="task-info">
                         <small>Progresso: ${completedSteps}/${totalSteps} (${Math.round(progressPercentage)}%)</small>
@@ -3543,6 +3535,16 @@
                             🏆 Placar: <strong id="placar-value-${task.id}">0</strong> pontos
                         </div>
                 </div>
+
+                ${(task.images && task.images.length > 0) || task.image ? `
+                    <div class="task-image-container">
+                        <div class="task-images-scroll ${task.images?.length === 1 ? 'single-image' : ''}" 
+                            style="display: none;"
+                            data-images-loaded="false"
+                            data-taskid-images="${task.id}">
+                        </div>
+                    </div>
+                ` : ''}
 
 
                 <div class="task-steps-wrapper">
@@ -3692,6 +3694,32 @@
                         if (!imageContainer) return;
 
                         const isVisible = imageContainer.style.display === 'flex';
+
+                        if (!isVisible && imageContainer.getAttribute('data-images-loaded') === 'false') {
+                            // Carrega imagens só agora
+                            const imgs = task.images && task.images.length > 0
+                                ? task.images
+                                : task.image ? [task.image] : [];
+
+                            imageContainer.innerHTML = imgs.map((img, index) =>
+                                `<img src="${img}" alt="Imagem ${index + 1}" class="scroll-image">`
+                            ).join('');
+
+                            imageContainer.setAttribute('data-images-loaded', 'true');
+
+                            // Re-adiciona event listeners nas imagens
+                            imageContainer.querySelectorAll('.scroll-image').forEach((img, index) => {
+                                img.addEventListener('click', () => {
+                                    modalImages = imgs;
+                                    currentImageIndex = index;
+                                    const imageModal = document.getElementById('imageModal');
+                                    const modalImage = document.getElementById('modalImage');
+                                    modalImage.src = modalImages[currentImageIndex];
+                                    imageModal.style.display = 'block';
+                                });
+                            });
+                        }
+
                         imageContainer.style.display = isVisible ? 'none' : 'flex';
                         toggleImageBtn.textContent = isVisible ? 'Mostrar imagens' : 'Ocultar imagens';
                     });
@@ -3764,14 +3792,12 @@
                 updateRequest.onerror = (event) => {
                     console.error('Erro ao atualizar o passo:', event.target.error);
                     showStatusMessage('Erro ao atualizar o passo', 'error');
-                    loadTasks();
                 };
             };
 
             request.onerror = (event) => {
                 console.error('Erro ao obter o cronograma:', event.target.error);
                 showStatusMessage('Erro ao obter o cronograma', 'error');
-                loadTasks();
             };
 
             recalcularTotal(taskId);
@@ -5178,19 +5204,27 @@
             const searchInput = document.getElementById('searchInput');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
 
+            let searchDebounceTimer = null;
+
             if (searchInput) {
                 searchInput.addEventListener('input', function () {
                     const searchValue = this.value.trim();
                     if (clearSearchBtn) clearSearchBtn.style.display = searchValue ? 'block' : 'none';
-                    currentPage = 1;
-                    totalLoadedTasks = viewMode === 'compact' ? 2 : filteredTasks.length;
-                    loadTasks();
+
                     const taskList = document.getElementById('taskList');
                     if (searchValue) {
                         taskList.classList.add('has-search');
                     } else {
                         taskList.classList.remove('has-search');
                     }
+
+                    // Aguarda 300ms após parar de digitar para buscar
+                    clearTimeout(searchDebounceTimer);
+                    searchDebounceTimer = setTimeout(() => {
+                        currentPage = 1;
+                        totalLoadedTasks = viewMode === 'compact' ? 2 : filteredTasks.length;
+                        loadTasks();
+                    }, 300);
                 });
             }
 
