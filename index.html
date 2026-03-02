@@ -1913,7 +1913,7 @@
             recognition.maxAlternatives = 1;
 
             recognition.onstart = function () {
-                console.log('Reconhecimento de voz iniciado');
+                // console.log('Reconhecimento de voz iniciado');
                 if (!isEditModalRecording) {
                     showAudioStatus('🎤 Escutando... Fale agora!', 'listening');
                 }
@@ -1946,7 +1946,7 @@
             };
 
             recognition.onend = function () {
-                console.log('Reconhecimento de voz finalizado');
+                // console.log('Reconhecimento de voz finalizado');
                 stopRecording();
                 stopEditModalRecording();
                 hideAudioStatus();
@@ -2004,7 +2004,7 @@
 
                 recognition.onresult = function (event) {
                     const transcript = event.results[0][0].transcript.trim();
-                    console.log('Texto reconhecido na tela principal:', transcript);
+                    // console.log('Texto reconhecido na tela principal:', transcript);
 
                     if (transcript) {
                         handleAudioInput(transcript);
@@ -2103,7 +2103,7 @@
 
                 recognition.onresult = function (event) {
                     const transcript = event.results[0][0].transcript.trim();
-                    console.log('Texto reconhecido no modal:', transcript);
+                    // console.log('Texto reconhecido no modal:', transcript);
 
                     if (transcript) {
                         handleEditModalAudioInput(transcript);
@@ -3728,11 +3728,11 @@
                         task.steps.forEach(step => {
                             if (step.text.replace('✓', '').trim().toLowerCase() === textoCapturado) {
                                 step.completed = completed;
-                                console.log('SALVOU:', step.text, '→', completed);
+                                // console.log('SALVOU:', step.text, '→', completed);
                             }
                         });
                     } else {
-                        console.log('textoCapturado é null!');
+                        // console.log('textoCapturado é null!');
                     }
                 } else {
                     if (task.steps[stepIndex]) {
@@ -3956,7 +3956,7 @@
                                 const stepNoBanco = task.steps.find(s =>
                                     s.text.replace('✓', '').trim().toLowerCase() === content.toLowerCase() && s.completed
                                 );
-                                console.log('Restaurando:', content, '→ encontrou:', !!stepNoBanco);
+                                // console.log('Restaurando:', content, '→ encontrou:', !!stepNoBanco);
 
                                 if (stepNoBanco) {
                                     cb.checked = true;
@@ -4919,7 +4919,7 @@
                 precoPorMinuto = 90 / 60;
             }
 
-            console.log('precoPorHora:', precoPorHora, 'precoPorMinuto:', precoPorMinuto);
+            // console.log('precoPorHora:', precoPorHora, 'precoPorMinuto:', precoPorMinuto);
             return { precoPorHora, precoPorMinuto };
         }
 
@@ -5521,9 +5521,9 @@
                 `;
             document.head.appendChild(style);
 
-            console.log('Dispositivo detectado:', isMobileDevice() ? 'Mobile' : 'Desktop');
-            console.log('Pausa após título:', PAUSE_AFTER_TITLE + 'ms');
-            console.log('Pausa entre steps:', PAUSE_BETWEEN_STEPS + 'ms');
+            // console.log('Dispositivo detectado:', isMobileDevice() ? 'Mobile' : 'Desktop');
+            // console.log('Pausa após título:', PAUSE_AFTER_TITLE + 'ms');
+            // console.log('Pausa entre steps:', PAUSE_BETWEEN_STEPS + 'ms');
             // ===== ATALHOS DE TECLADO PARA MARCADORES =====
             const taskStepsInput = document.getElementById('taskSteps');
             const editTaskStepsInput = document.getElementById('editTaskSteps');
