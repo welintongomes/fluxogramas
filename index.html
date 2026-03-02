@@ -1912,7 +1912,7 @@
             recognition.maxAlternatives = 1;
 
             recognition.onstart = function () {
-                // console.log('Reconhecimento de voz iniciado');
+                console.log('Reconhecimento de voz iniciado');
                 if (!isEditModalRecording) {
                     showAudioStatus('🎤 Escutando... Fale agora!', 'listening');
                 }
@@ -1945,7 +1945,7 @@
             };
 
             recognition.onend = function () {
-                // console.log('Reconhecimento de voz finalizado');
+                console.log('Reconhecimento de voz finalizado');
                 stopRecording();
                 stopEditModalRecording();
                 hideAudioStatus();
@@ -2003,7 +2003,7 @@
 
                 recognition.onresult = function (event) {
                     const transcript = event.results[0][0].transcript.trim();
-                    // console.log('Texto reconhecido na tela principal:', transcript);
+                    console.log('Texto reconhecido na tela principal:', transcript);
 
                     if (transcript) {
                         handleAudioInput(transcript);
@@ -2102,7 +2102,7 @@
 
                 recognition.onresult = function (event) {
                     const transcript = event.results[0][0].transcript.trim();
-                    // console.log('Texto reconhecido no modal:', transcript);
+                    console.log('Texto reconhecido no modal:', transcript);
 
                     if (transcript) {
                         handleEditModalAudioInput(transcript);
@@ -3297,19 +3297,24 @@
                 const collapseIcon = hasChildren
                     ? `<span class="collapse-icon" onclick="toggleStepChildren(${taskId}, ${index}, event)" style="cursor: pointer; margin-right: 5px; user-select: none;">▶</span>`
                     : '<span style="margin-right: 5px; opacity: 0; width: 16px; display: inline-block;">▼</span>';
+                const isRespostaCerta = isQuiz && step.text.includes('✓');
+                const textoExibido = isQuiz ? step.text.replace('✓', '').trim() : step.text;
                 //aqui modifique para colocar mais formas de referir ao dinheiro se for preciso
                 // Detecta se é um step de configuração de preço
                 const isPriceConfig = (
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*?(?:a|por|\/|o)\s*hora/i.test(step.text) ||
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*?(?:a|por|\/|o)\s*minuto/i.test(step.text)
                 );
-                const isRespostaCerta = isQuiz && step.text.includes('✓');
-                const textoExibido = isQuiz ? step.text.replace('✓', '').trim() : step.text;
+                const regexValores = /([+-]?\s*R\$\s*[\d.,]+|[+-]?\s*[\d.,]+\s*(?:reais|real|conto|contos|pila|pilas))/gi;
+                const regexPorcentagem = /([+-]?\s*[\d.,]+\s*%)/gi;
+                let stepValue = 0;
+                let stepPercent = 0;
+                let match;
+
+                // Captura valores monetários
                 // Captura APENAS valores com R$ ou palavra monetária explícita
                 // Não pega números soltos como "1 hora" ou "30 minutos"
                 const regexVal2 = /([+-])?\s*(?:R\$\s*([\d.,]+)|([\d.,]+)\s*(?:reais|real|conto|contos|pila|pilas)\b)/gi;
-                let stepValue = 0;
-                let stepPercent = 0;
 
                 while ((match = regexVal2.exec(step.text)) !== null) {
                     const sinal = match[1] === '-' ? -1 : 1;
@@ -3339,10 +3344,10 @@
                     data-taskid="${taskId}" 
                     data-stepindex="${index}"
                     data-value="${isPriceConfig ? 0 : stepValue}"
-                    data-is-resposta-certa="${isRespostaCerta}"
                     data-percent="${isPriceConfig ? 0 : stepPercent}"
+                    data-is-resposta-certa="${isRespostaCerta}"
                     ${step.completed ? 'checked' : ''}>
-                   <div class="step-content">${textoExibido}</div>
+                    <div class="step-content">${textoExibido}</div>
                 </div>
                 `;
             });
@@ -3361,37 +3366,33 @@
             const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
             if (!taskElement) return;
 
+            const isQuiz = /\[QUIZ\]/i.test(taskElement.querySelector('.task-name')?.textContent || '');
             const steps = taskElement.querySelectorAll('.task-step');
             const clickedStep = steps[stepIndex];
             const clickedLevel = parseInt(clickedStep.getAttribute('data-level'));
             const icon = clickedStep.querySelector('.collapse-icon');
             const isCollapsed = icon.textContent === '▶';
 
-            if (isCollapsed) {
-                const taskElement = clickedStep.closest('.task-item');
-                const isQuiz = /\[QUIZ\]/i.test(taskElement?.querySelector('.task-name')?.textContent || '');
-
-                if (!isQuiz) {
-                    // ===== OCULTAR IRMÃOS E TODOS OS SEUS DESCENDENTES =====
-                    steps.forEach((step, idx) => {
-                        const stepLevel = parseInt(step.getAttribute('data-level'));
-
-                        if (stepLevel === clickedLevel && idx !== stepIndex) {
-                            step.style.display = 'none';
-                            const stepIcon = step.querySelector('.collapse-icon');
-                            if (stepIcon) stepIcon.textContent = '▶';
-
-                            for (let i = idx + 1; i < steps.length; i++) {
-                                const childLevel = parseInt(steps[i].getAttribute('data-level'));
-                                if (childLevel <= stepLevel) break;
-                                steps[i].style.display = 'none';
-                                const childIcon = steps[i].querySelector('.collapse-icon');
-                                if (childIcon) childIcon.textContent = '▶';
-                            }
+            if (isCollapsed && !isQuiz) {
+                // Oculta irmãos apenas se NÃO for quiz
+                steps.forEach((step, idx) => {
+                    const stepLevel = parseInt(step.getAttribute('data-level'));
+                    if (stepLevel === clickedLevel && idx !== stepIndex) {
+                        step.style.display = 'none';
+                        const stepIcon = step.querySelector('.collapse-icon');
+                        if (stepIcon) stepIcon.textContent = '▶';
+                        for (let i = idx + 1; i < steps.length; i++) {
+                            const childLevel = parseInt(steps[i].getAttribute('data-level'));
+                            if (childLevel <= stepLevel) break;
+                            steps[i].style.display = 'none';
+                            const childIcon = steps[i].querySelector('.collapse-icon');
+                            if (childIcon) childIcon.textContent = '▶';
                         }
-                    });
-                }
+                    }
+                });
+            }
 
+            if (isCollapsed) {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         const taskStepsEl = clickedStep.closest('.task-steps');
@@ -3402,10 +3403,8 @@
                 });
             }
 
-            // Atualizar ícone do item clicado
             icon.textContent = isCollapsed ? '▼' : '▶';
 
-            // Mostrar/ocultar filhos diretos (nível + 1)
             for (let i = stepIndex + 1; i < steps.length; i++) {
                 const currentLevel = parseInt(steps[i].getAttribute('data-level'));
                 if (currentLevel <= clickedLevel) break;
@@ -3417,7 +3416,6 @@
                         steps[i].style.display = 'none';
                         const childIcon = steps[i].querySelector('.collapse-icon');
                         if (childIcon) childIcon.textContent = '▶';
-
                         for (let j = i + 1; j < steps.length; j++) {
                             const grandchildLevel = parseInt(steps[j].getAttribute('data-level'));
                             if (grandchildLevel <= currentLevel) break;
@@ -3430,9 +3428,8 @@
                     steps[i].style.display = 'none';
                 }
             }
-            // No final da função toggleStepChildren, antes de fechar a função:
+
             if (isCollapsed) {
-                // Verificar se os filhos diretos abertos são pontos finais
                 for (let i = stepIndex + 1; i < steps.length; i++) {
                     const currentLevel = parseInt(steps[i].getAttribute('data-level'));
                     if (currentLevel <= clickedLevel) break;
@@ -3445,7 +3442,6 @@
                 }
             }
         }
-
         function expandToStep(taskId, stepIndex) {
             const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
             if (!taskElement) return;
@@ -3498,25 +3494,17 @@
                 const isPriceConfig = (step) =>
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*(?:a|por|\/|o)?\s*hora/i.test(step.text);
 
-                const isQuizResposta = (step) => isQuiz && step.level > 0;
-                const isQuizRespostaCerta = (step) => isQuiz && step.level > 0 && step.text.includes('✓');
+                const completedSteps = task.steps.filter(step => {
+                    if (isPriceConfig(step)) return false;
+                    if (isQuiz && step.level > 0 && !step.text.includes('✓')) return false;
+                    return step.completed;
+                }).length;
 
-                const completedSteps = isQuiz
-                    ? task.steps.filter(step =>
-                        step.completed && (!isQuizResposta(step) || isQuizRespostaCerta(step))
-                    ).length
-                    : task.steps.filter(step =>
-                        step.completed && !isPriceConfig(step)
-                    ).length;
-
-                const totalSteps = isQuiz
-                    ? task.steps.filter(step =>
-                        !isQuizResposta(step) || isQuizRespostaCerta(step)
-                    ).length
-                    : task.steps.filter(step =>
-                        !isPriceConfig(step)
-                    ).length;
-
+                const totalSteps = task.steps.filter(step => {
+                    if (isPriceConfig(step)) return false;
+                    if (isQuiz && step.level > 0 && !step.text.includes('✓')) return false;
+                    return true;
+                }).length;
                 const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
                 taskElement.innerHTML = `
@@ -3543,14 +3531,14 @@
                         <small>Progresso: ${completedSteps}/${totalSteps} (${Math.round(progressPercentage)}%)</small>
                     </div>
                         ${!isQuiz ? `
-                        <div class="task-total" id="total-${task.id}" style="display:none;">
-                            💰 <strong id="total-value-${task.id}">R$ 0,00</strong>
-                        </div>
+                            <div class="task-total" id="total-${task.id}" style="display:none;">
+                                💰 <strong id="total-value-${task.id}">R$ 0,00</strong>
+                            </div>
                         ` : ''}
                         <div class="task-placar" id="placar-${task.id}" style="display:none; padding:4px 20px; font-size:13px;">
                             🏆 Placar: <strong id="placar-value-${task.id}">0</strong> pontos
                         </div>
-                    </div>
+                </div>
 
 
                 <div class="task-steps-wrapper">
@@ -3719,6 +3707,8 @@
             const taskId = parseInt(event.target.dataset.taskid);
             const stepIndex = parseInt(event.target.dataset.stepindex);
             const completed = event.target.checked;
+            const stepElCapturado = event.target.closest('.task-step'); // captura ANTES do async
+            const textoCapturado = stepElCapturado?.querySelector('.step-content')?.textContent?.trim().toLowerCase();
 
             updateTaskProgressLocally(taskId, stepIndex, completed);
 
@@ -3728,23 +3718,50 @@
 
             request.onsuccess = (event) => {
                 const task = event.target.result;
+                if (!task) return;
 
-                if (task && task.steps[stepIndex]) {
-                    task.steps[stepIndex].completed = completed;
-                    task.completed = task.steps.every(step => step.completed);
+                const isQuiz = /\[QUIZ\]/i.test(task.name || '');
 
-                    const updateRequest = store.put(task);
-
-                    updateRequest.onsuccess = () => {
-                        // Sucesso
-                    };
-
-                    updateRequest.onerror = (event) => {
-                        console.error('Erro ao atualizar o passo:', event.target.error);
-                        showStatusMessage('Erro ao atualizar o passo', 'error');
-                        loadTasks();
-                    };
+                if (isQuiz) {
+                    if (textoCapturado) {
+                        task.steps.forEach(step => {
+                            if (step.text.replace('✓', '').trim().toLowerCase() === textoCapturado) {
+                                step.completed = completed;
+                                console.log('SALVOU:', step.text, '→', completed);
+                            }
+                        });
+                    } else {
+                        console.log('textoCapturado é null!');
+                    }
+                } else {
+                    if (task.steps[stepIndex]) {
+                        task.steps[stepIndex].completed = completed;
+                    }
                 }
+
+                task.completed = task.steps.every(step => step.completed);
+
+                const updateRequest = store.put(task);
+                updateRequest.onsuccess = () => {
+                    // Atualiza o array tasks em memória
+                    const taskEmMemoria = tasks.find(t => t.id === taskId);
+                    if (taskEmMemoria) {
+                        if (isQuiz && textoCapturado) {
+                            taskEmMemoria.steps.forEach(step => {
+                                if (step.text.replace('✓', '').trim().toLowerCase() === textoCapturado) {
+                                    step.completed = completed;
+                                }
+                            });
+                        } else if (!isQuiz && taskEmMemoria.steps[stepIndex]) {
+                            taskEmMemoria.steps[stepIndex].completed = completed;
+                        }
+                    }
+                };
+                updateRequest.onerror = (event) => {
+                    console.error('Erro ao atualizar o passo:', event.target.error);
+                    showStatusMessage('Erro ao atualizar o passo', 'error');
+                    loadTasks();
+                };
             };
 
             request.onerror = (event) => {
@@ -3752,9 +3769,9 @@
                 showStatusMessage('Erro ao obter o cronograma', 'error');
                 loadTasks();
             };
-            recalcularTotal(taskId);
-            recalcularPlacar(parseInt(taskId));
 
+            recalcularTotal(taskId);
+            recalcularPlacar(taskId);
         }
 
         function handleTaskStepClick(event) {
@@ -3815,7 +3832,6 @@
                     if (isQuiz) {
                         const level = parseInt(stepEl?.getAttribute('data-level') || 0);
                         const isRespostaCerta = cb.getAttribute('data-is-resposta-certa') === 'true';
-                        // No QUIZ conta apenas perguntas (level 0) e respostas certas
                         return level === 0 || isRespostaCerta;
                     }
                     return true;
@@ -3842,7 +3858,6 @@
             }
 
             recalcularTotal(taskId);
-            recalcularPlacar(taskId);
         }
 
         function closeAllOtherTasks(currentTaskId) {
@@ -3918,12 +3933,6 @@
                 expandText.textContent = 'Recolher';
 
                 // Recolher todos os steps (exceto nível 0) ao expandir
-                // setTimeout(() => {
-                //     collapseAllSteps(taskId);
-                //     recalcularTotal(taskId);
-                //     focusPendingStep(taskElement);
-                // }, 50);
-
                 setTimeout(() => {
                     const isQuiz = /\[QUIZ\]/i.test(taskElement.querySelector('.task-name')?.textContent || '');
                     if (isQuiz) {
@@ -3931,16 +3940,45 @@
                         if (task) {
                             const stepsContainer = taskElement.querySelector('.task-steps');
                             const expandControls = stepsContainer.querySelector('.expand-all-controls');
-                            stepsContainer.innerHTML = expandControls.outerHTML + renderStepsWithCollapse(task.steps, task.id, true);
 
+                            // Embaralha mantendo completed pelo texto
+                            const stepsEmbaralhados = embaralharRespostas(task.steps);
+
+                            stepsContainer.innerHTML = expandControls.outerHTML + renderStepsWithCollapse(stepsEmbaralhados, task.id, true);
+
+                            // Restaura checkboxes marcados pelo texto
+                            stepsContainer.querySelectorAll('.task-step').forEach(stepEl => {
+                                const content = stepEl.querySelector('.step-content')?.textContent?.trim();
+                                const cb = stepEl.querySelector('.task-step-checkbox');
+                                if (!cb || !content) return;
+
+                                const stepNoBanco = task.steps.find(s =>
+                                    s.text.replace('✓', '').trim().toLowerCase() === content.toLowerCase() && s.completed
+                                );
+                                console.log('Restaurando:', content, '→ encontrou:', !!stepNoBanco);
+
+                                if (stepNoBanco) {
+                                    cb.checked = true;
+                                    const isRespostaCerta = cb.getAttribute('data-is-resposta-certa') === 'true';
+                                    const level = parseInt(stepEl.getAttribute('data-level') || 0);
+                                    if (level > 0) {
+                                        stepEl.style.background = isRespostaCerta ? 'rgba(52, 199, 89, 0.2)' : 'rgba(255, 59, 48, 0.2)';
+                                        stepEl.style.borderLeft = isRespostaCerta ? '3px solid #34C759' : '3px solid #FF3B30';
+                                    }
+                                }
+                            });
+
+                            // Re-adiciona event listeners
                             stepsContainer.querySelectorAll('.task-step-checkbox').forEach(cb => {
                                 cb.addEventListener('change', toggleStepCompletion);
                             });
                             stepsContainer.querySelectorAll('.task-step').forEach(step => {
                                 step.addEventListener('click', handleTaskStepClick);
                             });
+
+                            collapseAllSteps(taskId);
+                            recalcularPlacar(taskId);
                         }
-                        collapseAllSteps(taskId);
                     } else {
                         collapseAllSteps(taskId);
                         recalcularTotal(taskId);
@@ -4774,47 +4812,24 @@
         function embaralharRespostas(steps) {
             const resultado = [];
             let i = 0;
-
             while (i < steps.length) {
                 const step = steps[i];
-                const levelAtual = step.level;
-
-                // Coleta filhos diretos (respostas)
                 const filhos = [];
                 let j = i + 1;
-                while (j < steps.length && steps[j].level > levelAtual) {
+                while (j < steps.length && steps[j].level > step.level) {
                     filhos.push(steps[j]);
                     j++;
                 }
-
                 resultado.push(step);
-
                 if (filhos.length > 0) {
-                    // Separa filhos diretos dos mais profundos
-                    const filhosDiretos = filhos.filter(s => s.level === levelAtual + 1);
-                    const maisProftundos = filhos.filter(s => s.level > levelAtual + 1);
-
-                    // Embaralha apenas filhos diretos
-                    for (let k = filhosDiretos.length - 1; k > 0; k--) {
+                    for (let k = filhos.length - 1; k > 0; k--) {
                         const r = Math.floor(Math.random() * (k + 1));
-                        [filhosDiretos[k], filhosDiretos[r]] = [filhosDiretos[r], filhosDiretos[k]];
+                        [filhos[k], filhos[r]] = [filhos[r], filhos[k]];
                     }
-
-                    // Adiciona filhos diretos embaralhados
-                    filhosDiretos.forEach(filho => {
-                        resultado.push(filho);
-                        // Adiciona filhos mais profundos que pertencem a este filho
-                        maisProftundos.forEach(neto => {
-                            if (neto.level > filho.level) {
-                                resultado.push(neto);
-                            }
-                        });
-                    });
+                    filhos.forEach(f => resultado.push(f));
                 }
-
                 i = j;
             }
-
             return resultado;
         }
 
@@ -4831,16 +4846,12 @@
 
             checkboxes.forEach(cb => {
                 if (!cb.checked) return;
-
                 const stepEl = cb.closest('.task-step');
                 const level = parseInt(stepEl?.getAttribute('data-level') || 0);
-
-                // IGNORA perguntas (level 0) — só conta respostas (level > 0)
-                if (level === 0) return;
-
-                const isRespostaCerta = cb.getAttribute('data-is-resposta-certa') === 'true';
+                if (level === 0) return; // ignora perguntas
 
                 temResposta = true;
+                const isRespostaCerta = cb.getAttribute('data-is-resposta-certa') === 'true';
 
                 if (isRespostaCerta) {
                     placar += 1;
@@ -4862,6 +4873,7 @@
                 placarValue.style.color = placar > 0 ? '#34C759' : placar < 0 ? '#FF3B30' : 'var(--text-secondary)';
             }
         }
+
         function detectarPrecoPorHora(taskElement) {
             const steps = taskElement.querySelectorAll('.task-step');
             let precoPorHora = null;
@@ -4906,7 +4918,7 @@
                 precoPorMinuto = 90 / 60;
             }
 
-            // console.log('precoPorHora:', precoPorHora, 'precoPorMinuto:', precoPorMinuto);
+            console.log('precoPorHora:', precoPorHora, 'precoPorMinuto:', precoPorMinuto);
             return { precoPorHora, precoPorMinuto };
         }
 
@@ -4983,8 +4995,6 @@
                 }
             }
         }
-
-
 
         function nextImage() {
             currentImageIndex = (currentImageIndex + 1) % modalImages.length;
@@ -5510,9 +5520,9 @@
                 `;
             document.head.appendChild(style);
 
-            // console.log('Dispositivo detectado:', isMobileDevice() ? 'Mobile' : 'Desktop');
-            // console.log('Pausa após título:', PAUSE_AFTER_TITLE + 'ms');
-            // console.log('Pausa entre steps:', PAUSE_BETWEEN_STEPS + 'ms');
+            console.log('Dispositivo detectado:', isMobileDevice() ? 'Mobile' : 'Desktop');
+            console.log('Pausa após título:', PAUSE_AFTER_TITLE + 'ms');
+            console.log('Pausa entre steps:', PAUSE_BETWEEN_STEPS + 'ms');
             // ===== ATALHOS DE TECLADO PARA MARCADORES =====
             const taskStepsInput = document.getElementById('taskSteps');
             const editTaskStepsInput = document.getElementById('editTaskSteps');
