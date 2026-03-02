@@ -2397,7 +2397,9 @@
 
             const steps = stepsContainer.querySelectorAll('.task-step');
 
+            // Só busca entre steps visíveis (level 0) para não percorrer tudo
             const stepToFocus = Array.from(steps).find(step => {
+                if (step.style.display === 'none') return false;
                 const checkbox = step.querySelector('.task-step-checkbox');
                 return checkbox && !checkbox.checked;
             });
@@ -2407,10 +2409,13 @@
             steps.forEach(s => s.classList.remove('active'));
             stepToFocus.classList.add('active');
 
-            stepToFocus.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+            // Usa scrollTop direto em vez de scrollIntoView que causa reflow
+            const container = stepsContainer;
+            const stepTop = stepToFocus.offsetTop;
+            const containerHeight = container.clientHeight;
+            const stepHeight = stepToFocus.clientHeight;
+
+            container.scrollTop = stepTop - (containerHeight / 2) + (stepHeight / 2);
         }
         // ==================== SISTEMA HÍBRIDO DE INDENTAÇÃO ====================
         // ==================== SISTEMA DE NÍVEIS POR NÚMERO ====================
@@ -2576,11 +2581,15 @@
 
             const request = store.add(task);
 
-            request.onsuccess = () => {
+            request.onsuccess = (event) => {
                 showStatusMessage('Cronograma criado com sucesso!');
                 if (viewMode === 'compact') {
                     totalLoadedTasks = 2;
                 }
+                // Adiciona em memória sem recarregar tudo
+                const newTask = { ...task, id: event.target.result };
+                tasks.unshift(newTask);
+                filteredTasks = [...tasks];
                 loadTasks();
             };
 
@@ -2942,6 +2951,11 @@
 
                     updateRequest.onsuccess = () => {
                         showStatusMessage('Cronograma atualizado com sucesso!', 'success');
+                        // Atualiza em memória
+                        const idx = tasks.findIndex(t => t.id === currentEditTaskId);
+                        if (idx !== -1) {
+                            tasks[idx] = { ...tasks[idx], name, steps, images: Array.isArray(imagesData) ? imagesData : tasks[idx].images };
+                        }
                         closeModal();
                         loadTasks();
 
@@ -2974,8 +2988,11 @@
                 const request = store.delete(taskId);
 
                 request.onsuccess = () => {
-                    loadTasks();
+                    // Remove da memória sem recarregar tudo do banco
+                    tasks = tasks.filter(t => t.id !== taskId);
+                    filteredTasks = filteredTasks.filter(t => t.id !== taskId);
                     showStatusMessage('Cronograma excluído com sucesso!');
+                    loadTasks();
                 };
 
                 request.onerror = (event) => {
@@ -3022,12 +3039,44 @@
             const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
             if (!taskElement) return;
 
+            // Desmarca todos os checkboxes visualmente
             const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
-
             checkboxes.forEach(cb => {
                 cb.checked = false;
-                cb.dispatchEvent(new Event('change'));
+                const stepEl = cb.closest('.task-step');
+                if (stepEl) {
+                    stepEl.classList.remove('completed');
+                    stepEl.style.background = '';
+                    stepEl.style.borderLeft = '';
+                }
             });
+
+            // Salva tudo de uma vez no banco
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.get(taskId);
+
+            request.onsuccess = (event) => {
+                const task = event.target.result;
+                if (!task) return;
+
+                task.steps.forEach(step => step.completed = false);
+                task.completed = false;
+
+                // Atualiza memória
+                const taskEmMemoria = tasks.find(t => t.id === taskId);
+                if (taskEmMemoria) {
+                    taskEmMemoria.steps.forEach(step => step.completed = false);
+                    taskEmMemoria.completed = false;
+                }
+
+                store.put(task);
+            };
+
+            // Atualiza progresso
+            updateTaskProgressLocally(taskId, 0, false);
+            recalcularTotal(taskId);
+            recalcularPlacar(taskId);
         }
 
         // ==================== FUNÇÕES DE IMPORTAÇÃO E EXPORTAÇÃO ====================
