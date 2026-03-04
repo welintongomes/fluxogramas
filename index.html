@@ -2397,9 +2397,7 @@
 
             const steps = stepsContainer.querySelectorAll('.task-step');
 
-            // Só busca entre steps visíveis (level 0) para não percorrer tudo
             const stepToFocus = Array.from(steps).find(step => {
-                if (step.style.display === 'none') return false;
                 const checkbox = step.querySelector('.task-step-checkbox');
                 return checkbox && !checkbox.checked;
             });
@@ -3039,44 +3037,12 @@
             const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
             if (!taskElement) return;
 
-            // Desmarca todos os checkboxes visualmente
             const checkboxes = taskElement.querySelectorAll('.task-step-checkbox');
+
             checkboxes.forEach(cb => {
                 cb.checked = false;
-                const stepEl = cb.closest('.task-step');
-                if (stepEl) {
-                    stepEl.classList.remove('completed');
-                    stepEl.style.background = '';
-                    stepEl.style.borderLeft = '';
-                }
+                cb.dispatchEvent(new Event('change'));
             });
-
-            // Salva tudo de uma vez no banco
-            const transaction = db.transaction([STORE_NAME], 'readwrite');
-            const store = transaction.objectStore(STORE_NAME);
-            const request = store.get(taskId);
-
-            request.onsuccess = (event) => {
-                const task = event.target.result;
-                if (!task) return;
-
-                task.steps.forEach(step => step.completed = false);
-                task.completed = false;
-
-                // Atualiza memória
-                const taskEmMemoria = tasks.find(t => t.id === taskId);
-                if (taskEmMemoria) {
-                    taskEmMemoria.steps.forEach(step => step.completed = false);
-                    taskEmMemoria.completed = false;
-                }
-
-                store.put(task);
-            };
-
-            // Atualiza progresso
-            updateTaskProgressLocally(taskId, 0, false);
-            recalcularTotal(taskId);
-            recalcularPlacar(taskId);
         }
 
         // ==================== FUNÇÕES DE IMPORTAÇÃO E EXPORTAÇÃO ====================
