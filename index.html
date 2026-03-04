@@ -2407,13 +2407,10 @@
             steps.forEach(s => s.classList.remove('active'));
             stepToFocus.classList.add('active');
 
-            // Usa scrollTop direto em vez de scrollIntoView que causa reflow
-            const container = stepsContainer;
-            const stepTop = stepToFocus.offsetTop;
-            const containerHeight = container.clientHeight;
-            const stepHeight = stepToFocus.clientHeight;
-
-            container.scrollTop = stepTop - (containerHeight / 2) + (stepHeight / 2);
+            stepToFocus.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
         }
         // ==================== SISTEMA HÍBRIDO DE INDENTAÇÃO ====================
         // ==================== SISTEMA DE NÍVEIS POR NÚMERO ====================
