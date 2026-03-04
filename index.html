@@ -1582,6 +1582,206 @@
     </style>
 </head>
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronogramas</title>
+    <style>
+        /* ── Audio Note Styles ── */
+        .audio-note-toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+
+        .audio-note-record-btn {
+            background: #E91E63;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.2s;
+        }
+
+        .audio-note-record-btn:hover {
+            background: #C2185B;
+        }
+
+        .audio-note-record-btn.recording {
+            background: #f44336;
+            animation: pulse-record 1s infinite;
+        }
+
+        @keyframes pulse-record {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .audio-note-status {
+            font-size: 12px;
+            color: #E91E63;
+            padding: 4px 8px;
+            background: #fce4ec;
+            border-radius: 6px;
+            display: none;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .audio-note-status.visible {
+            display: flex;
+        }
+
+        /* Inline audio player in steps */
+        .inline-audio-player {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid #E91E63;
+            border-radius: 20px;
+            padding: 4px 10px;
+            margin: 2px 4px;
+            vertical-align: middle;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+        }
+
+        .inline-audio-player:hover {
+            box-shadow: 0 4px 14px rgba(233, 30, 99, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .inline-audio-player.playing {
+            background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);
+            border-color: #ff80ab;
+        }
+
+        .audio-play-icon {
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .audio-waveform {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 16px;
+        }
+
+        .audio-waveform span {
+            display: inline-block;
+            width: 2px;
+            background: #E91E63;
+            border-radius: 1px;
+            transition: height 0.1s;
+        }
+
+        .inline-audio-player.playing .audio-waveform span {
+            background: white;
+            animation: wave-anim 0.6s ease-in-out infinite alternate;
+        }
+
+        .inline-audio-player.playing .audio-waveform span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .inline-audio-player.playing .audio-waveform span:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .inline-audio-player.playing .audio-waveform span:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .inline-audio-player.playing .audio-waveform span:nth-child(4) {
+            animation-delay: 0.1s;
+        }
+
+        .inline-audio-player.playing .audio-waveform span:nth-child(5) {
+            animation-delay: 0s;
+        }
+
+        @keyframes wave-anim {
+            from {
+                height: 3px;
+            }
+
+            to {
+                height: 14px;
+            }
+        }
+
+        .audio-duration-label {
+            font-size: 10px;
+            color: #aaa;
+            font-family: monospace;
+            min-width: 28px;
+        }
+
+        .inline-audio-player.playing .audio-duration-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .audio-delete-btn {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 0 2px;
+            line-height: 1;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .inline-audio-player:hover .audio-delete-btn {
+            opacity: 1;
+        }
+
+        /* Recording indicator dots */
+        .rec-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff4444;
+            border-radius: 50%;
+            display: inline-block;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
 <body>
     <!-- ── Top creation form (hidden by default) ── -->
     <div class="container">
@@ -1619,9 +1819,18 @@
                 background:#f0f0f0;border-radius:6px;min-width:70px;text-align:center;">
                     Nível: 0
                 </span>
+                <!-- AUDIO NOTE BUTTON FOR CREATE FORM -->
+                <button type="button" id="audioNoteBtn" class="audio-note-record-btn"
+                    title="Gravar nota de áudio e inserir no texto">
+                    🎵 Nota de Áudio
+                </button>
+                <span id="audioNoteStatus" class="audio-note-status">
+                    <span class="rec-dot"></span> Gravando...
+                </span>
             </div>
             <div class="indent-help">
-                <strong>💡 Indentação:</strong> use espaços, tabs, ou os botões
+                <strong>💡 Indentação:</strong> use espaços, tabs, ou os botões &nbsp;|&nbsp; <strong>🎵 Nota de
+                    Áudio:</strong> grava e insere áudio inline no texto
             </div>
         </div>
 
@@ -1771,6 +1980,14 @@
                             background:#f0f0f0;border-radius:6px;min-width:70px;text-align:center;">
                         Nível: 0
                     </span>
+                    <!-- AUDIO NOTE BUTTON FOR EDIT MODAL -->
+                    <button type="button" id="editAudioNoteBtn" class="audio-note-record-btn"
+                        title="Gravar nota de áudio e inserir no texto">
+                        🎵 Nota de Áudio
+                    </button>
+                    <span id="editAudioNoteStatus" class="audio-note-status">
+                        <span class="rec-dot"></span> Gravando...
+                    </span>
                 </div>
                 <div id="resizeHandle"></div>
             </div>
@@ -1876,6 +2093,19 @@
         let currentStream = null;
         let currentFacingMode = 'environment';
 
+        // ==================== NOTAS DE ÁUDIO ====================
+        // audioNotes temporárias durante criação/edição: { id: base64DataURL }
+        let pendingAudioNotes = {};   // para o formulário de criação
+        let editAudioNotes = {};      // para o modal de edição (acumula novos + existentes)
+
+        let audioNoteMediaRecorder = null;
+        let audioNoteChunks = [];
+        let isRecordingAudioNote = false;
+        let audioNoteTargetTextareaId = null;
+
+        // Mapa de áudio elements ativos para players inline
+        const activeAudioElements = {};
+
         // ==================== CONEXÃO COM INDEXEDDB ====================
         const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -1899,6 +2129,234 @@
             loadTasks();
         };
 
+        // ==================== FUNÇÕES DE NOTAS DE ÁUDIO ====================
+
+        function generateAudioNoteId() {
+            return 'an_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        }
+
+        async function startAudioNoteRecording(textareaId, btnId, statusId) {
+            if (isRecordingAudioNote) {
+                await stopAudioNoteRecording(textareaId, btnId, statusId);
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Gravação de áudio não suportada neste navegador.');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                audioNoteChunks = [];
+                audioNoteTargetTextareaId = textareaId;
+
+                // Escolhe o melhor formato disponível
+                const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+                    ? 'audio/webm;codecs=opus'
+                    : MediaRecorder.isTypeSupported('audio/webm')
+                        ? 'audio/webm'
+                        : 'audio/ogg';
+
+                audioNoteMediaRecorder = new MediaRecorder(stream, { mimeType });
+
+                audioNoteMediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) audioNoteChunks.push(e.data);
+                };
+
+                audioNoteMediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    const blob = new Blob(audioNoteChunks, { type: mimeType });
+                    await insertAudioNoteIntoTextarea(blob, textareaId, mimeType);
+                    finishAudioNoteUI(btnId, statusId);
+                };
+
+                audioNoteMediaRecorder.start(100);
+                isRecordingAudioNote = true;
+
+                // UI feedback
+                const btn = document.getElementById(btnId);
+                const status = document.getElementById(statusId);
+                if (btn) {
+                    btn.classList.add('recording');
+                    btn.innerHTML = '⏹️ Parar Gravação';
+                }
+                if (status) status.classList.add('visible');
+
+            } catch (err) {
+                console.error('Erro ao acessar microfone para nota de áudio:', err);
+                alert('Não foi possível acessar o microfone. Verifique as permissões.');
+            }
+        }
+
+        async function stopAudioNoteRecording(textareaId, btnId, statusId) {
+            if (audioNoteMediaRecorder && audioNoteMediaRecorder.state !== 'inactive') {
+                audioNoteMediaRecorder.stop();
+                isRecordingAudioNote = false;
+            }
+        }
+
+        function finishAudioNoteUI(btnId, statusId) {
+            const btn = document.getElementById(btnId);
+            const status = document.getElementById(statusId);
+            if (btn) {
+                btn.classList.remove('recording');
+                btn.innerHTML = '🎵 Nota de Áudio';
+            }
+            if (status) status.classList.remove('visible');
+            isRecordingAudioNote = false;
+        }
+
+        async function insertAudioNoteIntoTextarea(blob, textareaId, mimeType) {
+            const reader = new FileReader();
+
+            return new Promise((resolve) => {
+                reader.onload = (e) => {
+                    const base64 = e.target.result; // full data URL
+                    const noteId = generateAudioNoteId();
+
+                    // Armazena no mapa adequado
+                    if (textareaId === 'taskSteps') {
+                        pendingAudioNotes[noteId] = base64;
+                    } else if (textareaId === 'editTaskSteps') {
+                        editAudioNotes[noteId] = base64;
+                    }
+
+                    // Insere marcador no textarea na posição do cursor
+                    const textarea = document.getElementById(textareaId);
+                    if (textarea) {
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const marker = `[AUDIO_NOTE:${noteId}]`;
+                        const before = textarea.value.substring(0, start);
+                        const after = textarea.value.substring(end);
+
+                        // Insere na mesma linha, sem quebra forçada
+                        textarea.value = before + marker + after;
+                        const newPos = start + marker.length;
+                        textarea.selectionStart = textarea.selectionEnd = newPos;
+                        textarea.focus();
+                    }
+
+                    showStatusMessage('🎵 Nota de áudio inserida!', 'success');
+                    resolve();
+                };
+
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // Renderiza o marcador [AUDIO_NOTE:id] como player HTML inline
+        function renderAudioNoteMarkers(html, audioNotes) {
+            if (!audioNotes || Object.keys(audioNotes).length === 0) return html;
+
+            return html.replace(/\[AUDIO_NOTE:(an_[\w]+)\]/g, (match, noteId) => {
+                const base64 = audioNotes[noteId];
+                if (!base64) return `<span style="color:#999;font-size:11px">[áudio removido]</span>`;
+
+                // Monta o player inline
+                return `<span class="inline-audio-player" 
+                            data-audio-id="${noteId}"
+                            data-audio-src="${noteId}"
+                            onclick="toggleInlineAudio('${noteId}')"
+                            title="Clique para ouvir/pausar">
+                    <span class="audio-play-icon">▶</span>
+                    <span class="audio-waveform">
+                        <span style="height:4px"></span>
+                        <span style="height:10px"></span>
+                        <span style="height:14px"></span>
+                        <span style="height:10px"></span>
+                        <span style="height:4px"></span>
+                    </span>
+                    <span class="audio-duration-label" id="dur-${noteId}">♪</span>
+                </span>`;
+            });
+        }
+
+        // Injeta os dados de áudio no DOM para players previamente renderizados
+        function injectAudioData(taskElement, audioNotes) {
+            if (!audioNotes) return;
+            taskElement.querySelectorAll('.inline-audio-player').forEach(player => {
+                const noteId = player.getAttribute('data-audio-id');
+                if (noteId && audioNotes[noteId]) {
+                    // Guarda o src no dataset para acesso posterior
+                    player.setAttribute('data-audio-src-data', audioNotes[noteId]);
+
+                    // Pré-carrega para obter duração
+                    const tmpAudio = new Audio(audioNotes[noteId]);
+                    tmpAudio.addEventListener('loadedmetadata', () => {
+                        const durEl = document.getElementById(`dur-${noteId}`);
+                        if (durEl) {
+                            const sec = Math.round(tmpAudio.duration);
+                            durEl.textContent = sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m${sec % 60}s`;
+                        }
+                    });
+                }
+            });
+        }
+
+        function toggleInlineAudio(noteId) {
+            // Verifica se já existe um Audio ativo para este noteId
+            if (activeAudioElements[noteId]) {
+                const audio = activeAudioElements[noteId];
+                if (!audio.paused) {
+                    audio.pause();
+                    setPlayerState(noteId, false);
+                } else {
+                    audio.play();
+                    setPlayerState(noteId, true);
+                }
+                return;
+            }
+
+            // Busca o src no DOM
+            const player = document.querySelector(`.inline-audio-player[data-audio-id="${noteId}"]`);
+            if (!player) return;
+
+            const src = player.getAttribute('data-audio-src-data');
+            if (!src) {
+                showStatusMessage('Dados de áudio não encontrados', 'error');
+                return;
+            }
+
+            const audio = new Audio(src);
+            activeAudioElements[noteId] = audio;
+
+            audio.onplay = () => setPlayerState(noteId, true);
+            audio.onpause = () => setPlayerState(noteId, false);
+            audio.onended = () => {
+                setPlayerState(noteId, false);
+                delete activeAudioElements[noteId];
+            };
+            audio.onerror = () => {
+                showStatusMessage('Erro ao reproduzir áudio', 'error');
+                setPlayerState(noteId, false);
+                delete activeAudioElements[noteId];
+            };
+
+            audio.play();
+        }
+
+        function setPlayerState(noteId, isPlaying) {
+            const players = document.querySelectorAll(`.inline-audio-player[data-audio-id="${noteId}"]`);
+            players.forEach(player => {
+                const icon = player.querySelector('.audio-play-icon');
+                if (isPlaying) {
+                    player.classList.add('playing');
+                    if (icon) icon.textContent = '⏸';
+                } else {
+                    player.classList.remove('playing');
+                    if (icon) icon.textContent = '▶';
+                }
+            });
+        }
+
+        // Limpa notas de áudio pendentes do form de criação
+        function clearPendingAudioNotes() {
+            pendingAudioNotes = {};
+        }
+
         // ==================== FUNÇÕES DE RECONHECIMENTO DE VOZ ====================
         function initSpeechRecognition() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -1917,7 +2375,6 @@
             recognition.maxAlternatives = 1;
 
             recognition.onstart = function () {
-                // console.log('Reconhecimento de voz iniciado');
                 if (!isEditModalRecording) {
                     showAudioStatus('🎤 Escutando... Fale agora!', 'listening');
                 }
@@ -1928,15 +2385,9 @@
                 let errorMessage = 'Erro no reconhecimento de voz';
 
                 switch (event.error) {
-                    case 'no-speech':
-                        errorMessage = 'Nenhuma fala detectada. Tente novamente.';
-                        break;
-                    case 'audio-capture':
-                        errorMessage = 'Microfone não encontrado ou sem permissão.';
-                        break;
-                    case 'not-allowed':
-                        errorMessage = 'Permissão de microfone negada.';
-                        break;
+                    case 'no-speech': errorMessage = 'Nenhuma fala detectada. Tente novamente.'; break;
+                    case 'audio-capture': errorMessage = 'Microfone não encontrado ou sem permissão.'; break;
+                    case 'not-allowed': errorMessage = 'Permissão de microfone negada.'; break;
                 }
 
                 if (isEditModalRecording) {
@@ -1950,7 +2401,6 @@
             };
 
             recognition.onend = function () {
-                // console.log('Reconhecimento de voz finalizado');
                 stopRecording();
                 stopEditModalRecording();
                 hideAudioStatus();
@@ -2008,7 +2458,6 @@
 
                 recognition.onresult = function (event) {
                     const transcript = event.results[0][0].transcript.trim();
-                    // console.log('Texto reconhecido na tela principal:', transcript);
 
                     if (transcript) {
                         handleAudioInput(transcript);
@@ -2107,7 +2556,6 @@
 
                 recognition.onresult = function (event) {
                     const transcript = event.results[0][0].transcript.trim();
-                    // console.log('Texto reconhecido no modal:', transcript);
 
                     if (transcript) {
                         handleEditModalAudioInput(transcript);
@@ -2412,12 +2860,11 @@
                 block: 'center'
             });
         }
+
         // ==================== SISTEMA HÍBRIDO DE INDENTAÇÃO ====================
-        // ==================== SISTEMA DE NÍVEIS POR NÚMERO ====================
         function detectIndentationLevel(line) {
             if (!line.trim()) return { level: 0, text: '', originalIndent: '', type: 'spaces' };
 
-            // SISTEMA PRINCIPAL: contar espaços no início (2 espaços = 1 nível)
             const spaceMatch = line.match(/^( *)(.*)/);
             const indent = spaceMatch[1] || '';
             const text = spaceMatch[2].trim();
@@ -2432,7 +2879,6 @@
             };
         }
 
-        // SUBSTITUA a função completa:
         function parseStepsWithLevels(stepsText) {
             const lines = stepsText.split('\n');
             const parsedSteps = [];
@@ -2454,7 +2900,6 @@
             return parsedSteps;
         }
 
-        // SUBSTITUA a função completa:
         function reconstructStepsText(steps) {
             return steps.map(step => {
                 const level = step.level || 0;
@@ -2480,7 +2925,6 @@
                 return;
             }
 
-            // MUDANÇA AQUI: usar parseStepsWithLevels
             const steps = parseStepsWithLevels(stepsText);
 
             let imagesData = [];
@@ -2507,27 +2951,24 @@
                         name,
                         steps,
                         images: imagesData,
+                        audioNotes: { ...pendingAudioNotes }, // ← inclui notas de áudio
                         createdAt: new Date().toISOString(),
                         completed: false
                     };
 
                     saveTask(task);
                     clearCreateForm();
-                    // Ocultar o formulário
                     const container = document.querySelector('.container');
                     const toggleBtn = document.getElementById('toggleContainerBtn');
                     if (container) container.style.display = 'none';
                     if (toggleBtn) toggleBtn.style.display = 'none';
 
-                    // Mostrar todas as tarefas novamente
                     setTimeout(() => {
                         const allTaskItems = document.querySelectorAll('.task-item');
                         allTaskItems.forEach(item => {
                             item.style.display = 'block';
                         });
                     }, 100);
-                    // ===== FIM =====
-
                 });
                 return;
             }
@@ -2536,6 +2977,7 @@
                 name,
                 steps,
                 images: imagesData,
+                audioNotes: { ...pendingAudioNotes }, // ← inclui notas de áudio
                 createdAt: new Date().toISOString(),
                 completed: false
             };
@@ -2547,7 +2989,6 @@
             if (container) container.style.display = 'none';
             if (toggleBtn) toggleBtn.style.display = 'none';
 
-            // Mostrar todas as tarefas novamente
             setTimeout(() => {
                 const allTaskItems = document.querySelectorAll('.task-item');
                 allTaskItems.forEach(item => {
@@ -2565,6 +3006,7 @@
             taskStepsInput.value = '';
             taskImageInput.value = '';
             capturedImagesData = [];
+            clearPendingAudioNotes();
             document.getElementById('imagePreview').innerHTML = '';
             updateImagesCount('imagesCount', 0);
             isFirstAudioInput = true;
@@ -2581,7 +3023,6 @@
                 if (viewMode === 'compact') {
                     totalLoadedTasks = 2;
                 }
-                // Adiciona em memória sem recarregar tudo
                 const newTask = { ...task, id: event.target.result };
                 tasks.unshift(newTask);
                 filteredTasks = [...tasks];
@@ -2610,11 +3051,13 @@
 
                     editTaskNameInput.value = task.name;
                     editTaskStepsInput.value = reconstructStepsText(task.steps);
-                    // 🔥 Colocar foco e criar nova linha automaticamente
+
+                    // Carrega as notas de áudio existentes para edição
+                    editAudioNotes = task.audioNotes ? { ...task.audioNotes } : {};
+
                     setTimeout(() => {
                         editTaskStepsInput.focus();
 
-                        // Se já tiver conteúdo e não terminar com quebra de linha
                         if (
                             editTaskStepsInput.value &&
                             !editTaskStepsInput.value.endsWith('\n')
@@ -2622,20 +3065,12 @@
                             editTaskStepsInput.value += '\n';
                         }
 
-                        // Move cursor para o final
                         const end = editTaskStepsInput.value.length;
                         editTaskStepsInput.setSelectionRange(end, end);
-
-                        // 🔥 Scroll vertical para baixo
                         editTaskStepsInput.scrollTop = editTaskStepsInput.scrollHeight;
-
-                        // 🔥 Resetar scroll horizontal
                         editTaskStepsInput.scrollLeft = 0;
 
                     }, 50);
-
-
-                    // Adicionar busca no modal se não existir
 
                     currentEditTaskId = taskId;
 
@@ -2662,7 +3097,6 @@
                         imagesHtml += `
                                     </div>
                                     <small>Adicione novas imagens ou remova as existentes</small>
-
                                 </div>
                             `;
 
@@ -2723,7 +3157,7 @@
                     if (editAudioIcon) editAudioIcon.textContent = '🎤';
                     if (editAudioBtnText) editAudioBtnText.textContent = '';
                     hideEditAudioStatus();
-                    // Configurar busca do modal
+
                     setTimeout(() => {
                         const editModalSearch = document.getElementById('editModalSearch');
                         const editModalSearchPrev = document.getElementById('editModalSearchPrev');
@@ -2758,7 +3192,7 @@
                             editModalSearchClear.parentNode.replaceChild(newBtn, editModalSearchClear);
                             newBtn.addEventListener('click', () => clearTextareaSearch(editTaskSteps));
                         }
-                        // 🔥 EVENT LISTENER PARA BUSCA POR VOZ
+
                         const editModalVoiceSearch = document.getElementById('editModalVoiceSearch');
                         if (editModalVoiceSearch && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
                             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2787,14 +3221,12 @@
                                 console.error('Erro no reconhecimento de voz do modal:', event.error);
                             };
                         } else if (editModalVoiceSearch) {
-                            // Se não suportar, desabilitar o botão
                             editModalVoiceSearch.disabled = true;
                             editModalVoiceSearch.title = 'Reconhecimento de voz não suportado';
                             editModalVoiceSearch.style.opacity = '0.5';
                         }
                     }, 100);
 
-                    // Desabilitar quebra de linha
                     editTaskStepsInput.setAttribute('wrap', 'off');
                     editTaskStepsInput.style.whiteSpace = 'pre';
                     editTaskStepsInput.style.overflowX = 'auto';
@@ -2812,7 +3244,6 @@
             if (isEditModalRecording) {
                 stopEditModalRecording();
             }
-            // Limpar busca do modal
             const editTaskSteps = document.getElementById('editTaskSteps');
             if (editTaskSteps) {
                 clearTextareaSearch(editTaskSteps);
@@ -2830,6 +3261,7 @@
             isEditModalRecording = false;
             window.removeImageFlag = false;
             editCapturedImageData = null;
+            editAudioNotes = {};
             const editImagePreview = document.getElementById('editImagePreview');
             if (editImagePreview) editImagePreview.innerHTML = '';
         }
@@ -2891,7 +3323,7 @@
                             allImages = allImages.filter((_, index) => !imagesMarkedForRemoval.includes(index));
                         }
 
-                        updateTaskInDatabase(name, steps, allImages);
+                        updateTaskInDatabase(name, steps, allImages, { ...editAudioNotes });
                         imagesMarkedForRemoval = [];
                     });
                 } else {
@@ -2899,13 +3331,13 @@
                         allImages = allImages.filter((_, index) => !imagesMarkedForRemoval.includes(index));
                     }
 
-                    updateTaskInDatabase(name, steps, allImages);
+                    updateTaskInDatabase(name, steps, allImages, { ...editAudioNotes });
                     imagesMarkedForRemoval = [];
                 }
             };
         }
 
-        function updateTaskInDatabase(name, steps, imagesData) {
+        function updateTaskInDatabase(name, steps, imagesData, audioNotes) {
             const transaction = db.transaction([STORE_NAME], 'readwrite');
             const store = transaction.objectStore(STORE_NAME);
             const request = store.get(currentEditTaskId);
@@ -2940,16 +3372,39 @@
                         task.images = imagesData;
                     }
 
+                    // Salva as notas de áudio
+                    task.audioNotes = audioNotes || {};
+
+                    // Limpa notas de áudio órfãs (cujos marcadores foram removidos do texto)
+                    const stepsText = reconstructStepsText(updatedSteps);
+                    const referencedIds = new Set();
+                    const noteRegex = /\[AUDIO_NOTE:(an_[\w]+)\]/g;
+                    let m;
+                    while ((m = noteRegex.exec(stepsText)) !== null) {
+                        referencedIds.add(m[1]);
+                    }
+                    // Remove do audioNotes as entradas sem referência no texto
+                    Object.keys(task.audioNotes).forEach(noteId => {
+                        if (!referencedIds.has(noteId)) {
+                            delete task.audioNotes[noteId];
+                        }
+                    });
+
                     task.completed = task.steps.every(step => step.completed);
 
                     const updateRequest = store.put(task);
 
                     updateRequest.onsuccess = () => {
                         showStatusMessage('Cronograma atualizado com sucesso!', 'success');
-                        // Atualiza em memória
                         const idx = tasks.findIndex(t => t.id === currentEditTaskId);
                         if (idx !== -1) {
-                            tasks[idx] = { ...tasks[idx], name, steps, images: Array.isArray(imagesData) ? imagesData : tasks[idx].images };
+                            tasks[idx] = {
+                                ...tasks[idx],
+                                name,
+                                steps,
+                                images: Array.isArray(imagesData) ? imagesData : tasks[idx].images,
+                                audioNotes: task.audioNotes
+                            };
                         }
                         closeModal();
                         loadTasks();
@@ -2957,6 +3412,7 @@
                         const editTaskImageInput = document.getElementById('editTaskImage');
                         if (editTaskImageInput) editTaskImageInput.value = '';
                         editCapturedImagesData = [];
+                        editAudioNotes = {};
                         const preview = document.getElementById('editImagePreview');
                         if (preview) preview.innerHTML = '';
                         updateImagesCount('editImagesCount', 0);
@@ -2983,7 +3439,6 @@
                 const request = store.delete(taskId);
 
                 request.onsuccess = () => {
-                    // Remove da memória sem recarregar tudo do banco
                     tasks = tasks.filter(t => t.id !== taskId);
                     filteredTasks = filteredTasks.filter(t => t.id !== taskId);
                     showStatusMessage('Cronograma excluído com sucesso!');
@@ -3043,6 +3498,7 @@
         }
 
         // ==================== FUNÇÕES DE IMPORTAÇÃO E EXPORTAÇÃO ====================
+        // audioNotes são exportadas automaticamente pois fazem parte do objeto task no JSON
         function exportTasks() {
             const transaction = db.transaction([STORE_NAME], 'readonly');
             const store = transaction.objectStore(STORE_NAME);
@@ -3067,7 +3523,7 @@
                 exportLink.click();
                 document.body.removeChild(exportLink);
 
-                showStatusMessage('Cronogramas exportados com sucesso!');
+                showStatusMessage('Cronogramas exportados com sucesso! (inclui notas de áudio)');
             };
 
             request.onerror = (event) => {
@@ -3149,6 +3605,7 @@
                 tasks.forEach(task => {
                     const cleanTask = { ...task };
                     delete cleanTask.id;
+                    // audioNotes são preservadas automaticamente
 
                     const promise = new Promise((resolve) => {
                         const addRequest = store.add(cleanTask);
@@ -3231,7 +3688,7 @@
                 console.error('Erro ao carregar cronogramas:', event.target.error);
                 showStatusMessage('Erro ao carregar cronogramas', 'error');
             };
-            // ===== REABRIR ÚLTIMA TAREFA ATIVA =====
+
             if (expandedTasks.size > 0) {
                 const lastExpandedId = Array.from(expandedTasks)[0];
 
@@ -3288,10 +3745,9 @@
                     return { ...item, highlighted: highlightedText };
                 });
         }
-        // ==================== SISTEMA DE COLAPSO DE NÍVEIS ====================
 
-        // Adicione esta função ANTES do renderTasks()
-        function renderStepsWithCollapse(steps, taskId, isQuiz = false) {
+        // ==================== SISTEMA DE COLAPSO DE NÍVEIS ====================
+        function renderStepsWithCollapse(steps, taskId, isQuiz = false, audioNotes = {}) {
             let html = '';
 
             if (isQuiz) {
@@ -3302,36 +3758,28 @@
                 const level = step.level || 0;
                 const hasChildren = index < steps.length - 1 && steps[index + 1].level > level;
 
-                // IMPORTANTE: Ocultar todos os filhos por padrão (exceto nível 0)
                 const isHidden = level > 0;
 
-                // Calcular padding para níveis > 5
                 const paddingLeft = level > 5 ? 150 + (level - 5) * 30 : 0;
                 const extraStyle = level > 5 ? `padding-left: ${paddingLeft}px; border-left: 3px solid #ccc;` : '';
                 const hideStyle = isHidden ? 'display: none;' : '';
 
-                // IMPORTANTE: Ícone começa fechado (▶) para itens com filhos
                 const collapseIcon = hasChildren
                     ? `<span class="collapse-icon" onclick="toggleStepChildren(${taskId}, ${index}, event)" style="cursor: pointer; margin-right: 5px; user-select: none;">▶</span>`
                     : '<span style="margin-right: 5px; opacity: 0; width: 16px; display: inline-block;">▼</span>';
+
                 const isRespostaCerta = isQuiz && step.text.includes('✓');
                 const textoExibido = isQuiz ? step.text.replace('✓', '').trim() : step.text;
-                //aqui modifique para colocar mais formas de referir ao dinheiro se for preciso
-                // Detecta se é um step de configuração de preço
+
                 const isPriceConfig = (
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*?(?:a|por|\/|o)\s*hora/i.test(step.text) ||
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+).*?(?:a|por|\/|o)\s*minuto/i.test(step.text)
                 );
-                const regexValores = /([+-]?\s*R\$\s*[\d.,]+|[+-]?\s*[\d.,]+\s*(?:reais|real|conto|contos|pila|pilas))/gi;
-                const regexPorcentagem = /([+-]?\s*[\d.,]+\s*%)/gi;
+
+                const regexVal2 = /([+-])?\s*(?:R\$\s*([\d.,]+)|([\d.,]+)\s*(?:reais|real|conto|contos|pila|pilas)\b)/gi;
                 let stepValue = 0;
                 let stepPercent = 0;
                 let match;
-
-                // Captura valores monetários
-                // Captura APENAS valores com R$ ou palavra monetária explícita
-                // Não pega números soltos como "1 hora" ou "30 minutos"
-                const regexVal2 = /([+-])?\s*(?:R\$\s*([\d.,]+)|([\d.,]+)\s*(?:reais|real|conto|contos|pila|pilas)\b)/gi;
 
                 while ((match = regexVal2.exec(step.text)) !== null) {
                     const sinal = match[1] === '-' ? -1 : 1;
@@ -3340,13 +3788,16 @@
                     if (valor > 0) stepValue += sinal * valor;
                 }
 
-                // Captura porcentagens com sinal
                 const regexPct = /([+-])\s*([\d.,]+)\s*%/gi;
                 while ((match = regexPct.exec(step.text)) !== null) {
                     const sinal = match[1] === '-' ? -1 : 1;
                     const raw = match[2].replace(',', '.');
                     stepPercent += sinal * (parseFloat(raw) || 0);
                 }
+
+                // Renderiza o texto do passo com players de áudio inline
+                const textoComAudio = renderAudioNoteMarkers(textoExibido, audioNotes);
+
                 html += `
                 <div class="task-step ${step.completed ? 'completed' : ''}" 
                     data-level="${level}"
@@ -3364,7 +3815,7 @@
                     data-percent="${isPriceConfig ? 0 : stepPercent}"
                     data-is-resposta-certa="${isRespostaCerta}"
                     ${step.completed ? 'checked' : ''}>
-                    <div class="step-content">${textoExibido}</div>
+                    <div class="step-content">${textoComAudio}</div>
                 </div>
                 `;
             });
@@ -3372,8 +3823,6 @@
             return html;
         }
 
-        // Função para colapsar/expandir filhos
-        // SUBSTITUA a função completa:
         function toggleStepChildren(taskId, stepIndex, event) {
             if (event) {
                 event.stopPropagation();
@@ -3391,7 +3840,6 @@
             const isCollapsed = icon.textContent === '▶';
 
             if (isCollapsed && !isQuiz) {
-                // Oculta irmãos apenas se NÃO for quiz
                 steps.forEach((step, idx) => {
                     const stepLevel = parseInt(step.getAttribute('data-level'));
                     if (stepLevel === clickedLevel && idx !== stepIndex) {
@@ -3459,6 +3907,7 @@
                 }
             }
         }
+
         function expandToStep(taskId, stepIndex) {
             const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
             if (!taskElement) return;
@@ -3467,7 +3916,6 @@
             const targetStep = steps[stepIndex];
             const targetLevel = parseInt(targetStep.getAttribute('data-level'));
 
-            // Expandir todos os pais até chegar no step desejado
             let currentLevel = targetLevel;
             while (currentLevel > 0) {
                 for (let i = stepIndex - 1; i >= 0; i--) {
@@ -3483,7 +3931,6 @@
                 currentLevel--;
             }
 
-            // ===== OCULTAR TUDO APÓS O STEP ENCONTRADO =====
             for (let i = stepIndex + 1; i < steps.length; i++) {
                 steps[i].style.display = 'none';
                 const icon = steps[i].querySelector('.collapse-icon');
@@ -3524,10 +3971,11 @@
                 }).length;
                 const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
+                // Conta quantas notas de áudio tem nesta task
+                const audioNoteCount = task.audioNotes ? Object.keys(task.audioNotes).length : 0;
+
                 taskElement.innerHTML = `
             <div class="task-content">
-                
-
                 <div class="task-name">${task.highlighted || task.name}</div>
 
                 <div class="task-progress">
@@ -3536,7 +3984,7 @@
                 
                 <div class="task-header">
                     <div class="task-info">
-                        <small>Progresso: ${completedSteps}/${totalSteps} (${Math.round(progressPercentage)}%)</small>
+                        <small>Progresso: ${completedSteps}/${totalSteps} (${Math.round(progressPercentage)}%)${audioNoteCount > 0 ? ` &nbsp;🎵 ${audioNoteCount} nota${audioNoteCount > 1 ? 's' : ''} de áudio` : ''}</small>
                     </div>
                         ${!isQuiz ? `
                             <div class="task-total" id="total-${task.id}" style="display:none;">
@@ -3558,19 +4006,17 @@
                     </div>
                 ` : ''}
 
-
                 <div class="task-steps-wrapper">
                     <div class="task-steps ${isExpanded ? '' : 'collapsed'}">
-                        <!-- ADICIONE ESTAS LINHAS: -->
-                <div class="expand-all-controls">
-                    <button onclick="expandAllSteps(${task.id})" class="btn-small" style="font-size: 12px; padding: 5px 10px;">
-                        ▼ Expandir Tudo
-                    </button>
-                    <button onclick="collapseAllSteps(${task.id})" class="btn-small" style="font-size: 12px; padding: 5px 10px;">
-                        ▶ Recolher Tudo
-                    </button>
-                </div>
-                        ${renderStepsWithCollapse(task.steps, task.id, isQuiz)}
+                        <div class="expand-all-controls">
+                            <button onclick="expandAllSteps(${task.id})" class="btn-small" style="font-size: 12px; padding: 5px 10px;">
+                                ▼ Expandir Tudo
+                            </button>
+                            <button onclick="collapseAllSteps(${task.id})" class="btn-small" style="font-size: 12px; padding: 5px 10px;">
+                                ▶ Recolher Tudo
+                            </button>
+                        </div>
+                        ${renderStepsWithCollapse(task.steps, task.id, isQuiz, task.audioNotes || {})}
                     </div>
                 </div>
                 <div class="task-local-search">
@@ -3611,6 +4057,11 @@
 
                 taskList.appendChild(taskElement);
 
+                // Injetar dados de áudio nos players renderizados
+                if (task.audioNotes && Object.keys(task.audioNotes).length > 0) {
+                    injectAudioData(taskElement, task.audioNotes);
+                }
+
                 // Event listeners
                 const clearBtn = taskElement.querySelector('.clear-step-search-btn');
                 if (clearBtn) {
@@ -3645,7 +4096,6 @@
                     };
                 }
 
-                // Botões de navegação entre matches
                 const prevBtn = taskElement.querySelector('.prev-match-btn');
                 const nextBtn = taskElement.querySelector('.next-match-btn');
 
@@ -3708,7 +4158,6 @@
                         const isVisible = imageContainer.style.display === 'flex';
 
                         if (!isVisible && imageContainer.getAttribute('data-images-loaded') === 'false') {
-                            // Carrega imagens só agora
                             const imgs = task.images && task.images.length > 0
                                 ? task.images
                                 : task.image ? [task.image] : [];
@@ -3719,7 +4168,6 @@
 
                             imageContainer.setAttribute('data-images-loaded', 'true');
 
-                            // Re-adiciona event listeners nas imagens
                             imageContainer.querySelectorAll('.scroll-image').forEach((img, index) => {
                                 img.addEventListener('click', () => {
                                     modalImages = imgs;
@@ -3751,7 +4199,7 @@
             const taskId = parseInt(event.target.dataset.taskid);
             const stepIndex = parseInt(event.target.dataset.stepindex);
             const completed = event.target.checked;
-            const stepElCapturado = event.target.closest('.task-step'); // captura ANTES do async
+            const stepElCapturado = event.target.closest('.task-step');
             const textoCapturado = stepElCapturado?.querySelector('.step-content')?.textContent?.trim().toLowerCase();
 
             updateTaskProgressLocally(taskId, stepIndex, completed);
@@ -3771,11 +4219,8 @@
                         task.steps.forEach(step => {
                             if (step.text.replace('✓', '').trim().toLowerCase() === textoCapturado) {
                                 step.completed = completed;
-                                // console.log('SALVOU:', step.text, '→', completed);
                             }
                         });
-                    } else {
-                        // console.log('textoCapturado é null!');
                     }
                 } else {
                     if (task.steps[stepIndex]) {
@@ -3787,7 +4232,6 @@
 
                 const updateRequest = store.put(task);
                 updateRequest.onsuccess = () => {
-                    // Atualiza o array tasks em memória
                     const taskEmMemoria = tasks.find(t => t.id === taskId);
                     if (taskEmMemoria) {
                         if (isQuiz && textoCapturado) {
@@ -3817,13 +4261,16 @@
         }
 
         function handleTaskStepClick(event) {
-            // Ignorar cliques no ícone de colapso
             if (event.target.classList.contains('collapse-icon')) {
                 return;
             }
 
-            // Ignorar cliques no checkbox
             if (event.target.type === 'checkbox') {
+                return;
+            }
+
+            // Não propagar clicks nos players de áudio
+            if (event.target.closest('.inline-audio-player')) {
                 return;
             }
 
@@ -3847,12 +4294,6 @@
             const stepCheckbox = taskElement.querySelector(`[data-stepindex="${stepIndex}"]`);
             const stepElement = stepCheckbox.closest('.task-step');
 
-            // LOG TEMPORÁRIO
-            // console.log('=== DEBUG PROGRESSO ===');
-            // console.log('data-is-price-config:', stepElement?.getAttribute('data-is-price-config'));
-            // console.log('texto do step:', stepElement?.querySelector('.step-content')?.textContent);
-
-            // Se é step de configuração de preço, não faz nada no progresso
             if (stepElement?.getAttribute('data-is-price-config') === 'true') {
                 recalcularTotal(taskId);
                 return;
@@ -3864,7 +4305,6 @@
                 stepElement.classList.remove('completed');
             }
 
-            // Ignora steps de preço na contagem
             const isQuiz = /\[QUIZ\]/i.test(taskElement.querySelector('.task-name')?.textContent || '');
 
             const allSteps = Array.from(taskElement.querySelectorAll('.task-step-checkbox'))
@@ -3903,7 +4343,6 @@
         }
 
         function closeAllOtherTasks(currentTaskId) {
-            // Buscar todas as tarefas expandidas
             const allTaskItems = document.querySelectorAll('.task-item');
 
             allTaskItems.forEach(taskItem => {
@@ -3912,17 +4351,14 @@
 
                 const taskId = parseInt(editBtn.getAttribute('data-taskid'));
 
-                // Se não for a tarefa atual E estiver expandida
                 if (taskId !== currentTaskId && taskItem.classList.contains('expanded')) {
                     const expandBtn = taskItem.querySelector('.expand-btn');
                     const taskSteps = taskItem.querySelector('.task-steps');
                     const expandIcon = expandBtn.querySelector('.expand-icon');
                     const expandText = expandBtn.querySelector('.expand-text');
 
-                    // Limpar busca antes de fechar
                     clearStepSearch(taskItem);
 
-                    // Fechar a tarefa
                     expandedTasks.delete(taskId);
                     taskItem.classList.add('collapsed');
                     taskItem.classList.remove('expanded');
@@ -3950,19 +4386,15 @@
             const isCurrentlyCollapsed = taskElement.classList.contains('collapsed');
 
             if (isCurrentlyCollapsed) {
-                // ===== OCULTAR TODOS OS OUTROS TASK-ITEMS =====
                 const allTaskItems = document.querySelectorAll('.task-item');
                 allTaskItems.forEach(item => {
                     if (item !== taskElement) {
                         item.style.display = 'none';
                     }
                 });
-                // ===== FIM =====
 
-                // Fechar todas as outras tarefas
                 closeAllOtherTasks(taskId);
 
-                // EXPANDINDO A TAREFA
                 expandedTasks.clear();
                 expandedTasks.add(taskId);
 
@@ -3974,7 +4406,6 @@
                 expandIcon.textContent = '▲';
                 expandText.textContent = 'Recolher';
 
-                // Recolher todos os steps (exceto nível 0) ao expandir
                 setTimeout(() => {
                     const isQuiz = /\[QUIZ\]/i.test(taskElement.querySelector('.task-name')?.textContent || '');
                     if (isQuiz) {
@@ -3983,12 +4414,10 @@
                             const stepsContainer = taskElement.querySelector('.task-steps');
                             const expandControls = stepsContainer.querySelector('.expand-all-controls');
 
-                            // Embaralha mantendo completed pelo texto
                             const stepsEmbaralhados = embaralharRespostas(task.steps);
 
-                            stepsContainer.innerHTML = expandControls.outerHTML + renderStepsWithCollapse(stepsEmbaralhados, task.id, true);
+                            stepsContainer.innerHTML = expandControls.outerHTML + renderStepsWithCollapse(stepsEmbaralhados, task.id, true, task.audioNotes || {});
 
-                            // Restaura checkboxes marcados pelo texto
                             stepsContainer.querySelectorAll('.task-step').forEach(stepEl => {
                                 const content = stepEl.querySelector('.step-content')?.textContent?.trim();
                                 const cb = stepEl.querySelector('.task-step-checkbox');
@@ -3997,7 +4426,6 @@
                                 const stepNoBanco = task.steps.find(s =>
                                     s.text.replace('✓', '').trim().toLowerCase() === content.toLowerCase() && s.completed
                                 );
-                                // console.log('Restaurando:', content, '→ encontrou:', !!stepNoBanco);
 
                                 if (stepNoBanco) {
                                     cb.checked = true;
@@ -4010,13 +4438,14 @@
                                 }
                             });
 
-                            // Re-adiciona event listeners
                             stepsContainer.querySelectorAll('.task-step-checkbox').forEach(cb => {
                                 cb.addEventListener('change', toggleStepCompletion);
                             });
                             stepsContainer.querySelectorAll('.task-step').forEach(step => {
                                 step.addEventListener('click', handleTaskStepClick);
                             });
+
+                            if (task.audioNotes) injectAudioData(stepsContainer, task.audioNotes);
 
                             collapseAllSteps(taskId);
                             recalcularPlacar(taskId);
@@ -4028,7 +4457,6 @@
                     }
                 }, 50);
 
-                // Scroll suave até a tarefa
                 setTimeout(() => {
                     taskElement.scrollIntoView({
                         behavior: 'smooth',
@@ -4038,14 +4466,11 @@
                 }, 100);
 
             } else {
-                // ===== MOSTRAR TODOS OS TASK-ITEMS NOVAMENTE =====
                 const allTaskItems = document.querySelectorAll('.task-item');
                 allTaskItems.forEach(item => {
                     item.style.display = 'block';
                 });
-                // ===== FIM =====
 
-                // RECOLHENDO A TAREFA
                 clearStepSearch(taskElement);
                 expandedTasks.delete(taskId);
                 taskElement.classList.add('collapsed');
@@ -4074,7 +4499,6 @@
                 return;
             }
 
-            // Limpar destaques anteriores
             steps.forEach(step => {
                 step.classList.remove('step-focus');
                 const content = step.querySelector('.step-content');
@@ -4104,7 +4528,6 @@
                     content.innerHTML = highlightedText;
                     currentSearchMatches.push(step);
 
-                    // IMPORTANTE: Expandir até este step (não expandir tudo)
                     const taskId = step.getAttribute('data-task-id');
                     const stepIdx = parseInt(step.getAttribute('data-step-index'));
                     if (taskId && !isNaN(stepIdx)) {
@@ -4120,7 +4543,6 @@
             updateSearchCounter(taskElement);
         }
 
-        // ==================== FUNÇÃO GENÉRICA DE BUSCA (REUTILIZÁVEL) ====================
         function performSearch(searchValue, config) {
             const normalizeText = (text) => {
                 return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -4139,10 +4561,8 @@
             }
 
             if (isTextarea) {
-                // BUSCA EM TEXTAREA (MODAL)
                 searchInTextarea(container, searchValue, normalizeText);
             } else {
-                // BUSCA EM STEPS (TASKS)
                 searchInSteps(container, searchValue, normalizeText, config);
             }
         }
@@ -4186,7 +4606,6 @@
             currentMatchIndex = 0;
             focusOnCurrentMatch(taskElement);
             if (currentSearchMatches.length > 0) {
-                // Expandir apenas até o primeiro resultado
                 const firstMatch = currentSearchMatches[0];
                 const taskId = firstMatch.getAttribute('data-task-id');
                 const stepIdx = parseInt(firstMatch.getAttribute('data-step-index'));
@@ -4208,7 +4627,6 @@
                 return;
             }
 
-            // Mostrar preview e ocultar textarea
             textarea.style.display = 'none';
             previewDiv.style.display = 'block';
 
@@ -4216,7 +4634,6 @@
             const normalizedSearch = normalizeText(searchValue);
             const normalizedText = normalizeText(text);
 
-            // Dividir em linhas
             const lines = text.split('\n');
             const matches = [];
 
@@ -4233,7 +4650,6 @@
                 return;
             }
 
-            // Salvar matches
             window.textareaMatches = matches;
             window.textareaMatchIndex = 0;
 
@@ -4250,7 +4666,6 @@
                 const normalizedLine = normalizeText(line);
                 const normalizedSearch = normalizeText(searchValue);
 
-                // Destacar a palavra encontrada
                 let highlightedLine = line;
                 const regex = new RegExp(`(${searchValue.split('').join('[àáâãäåèéêëìíîïòóôõöùúûü]*')})`, 'gi');
                 highlightedLine = highlightedLine.replace(regex, '<mark>$1</mark>');
@@ -4267,7 +4682,6 @@
 
             previewDiv.innerHTML = html;
 
-            // 🔥 ADICIONAR EVENT LISTENERS NOS ITEMS
             const items = previewDiv.querySelectorAll('.task-step');
             items.forEach(item => {
                 item.addEventListener('click', () => {
@@ -4276,7 +4690,6 @@
                 });
             });
 
-            // Focar no item ativo
             setTimeout(() => {
                 const activeElement = previewDiv.querySelector('.step-focus');
                 if (activeElement) {
@@ -4294,19 +4707,16 @@
 
             if (!textarea) return;
 
-            // Ocultar preview e mostrar textarea
             previewDiv.style.display = 'none';
             textarea.style.display = 'block';
 
-            // Calcular posição do cursor na linha específica
             const lines = textarea.value.split('\n');
             let position = 0;
 
             for (let i = 0; i < lineIndex; i++) {
-                position += lines[i].length + 1; // +1 para o \n
+                position += lines[i].length + 1;
             }
 
-            // Se houver texto de busca, encontrar a palavra na linha
             if (searchValue) {
                 const line = lines[lineIndex];
                 const normalizeText = (text) => {
@@ -4316,9 +4726,7 @@
                 const normalizedLine = normalizeText(line);
                 const normalizedSearch = normalizeText(searchValue);
 
-                // 🔥 CORREÇÃO: Encontrar a posição real considerando acentos
                 let wordPosition = -1;
-                let realPosition = 0;
 
                 for (let i = 0; i < line.length; i++) {
                     const substring = normalizeText(line.substring(i));
@@ -4331,7 +4739,6 @@
                 if (wordPosition !== -1) {
                     position += wordPosition;
 
-                    // 🔥 CALCULAR O TAMANHO REAL DA PALAVRA (pode ter acentos)
                     let realLength = 0;
                     let normalizedCount = 0;
 
@@ -4344,26 +4751,21 @@
                         realLength++;
                     }
 
-                    // Selecionar a palavra encontrada
                     textarea.focus();
                     textarea.setSelectionRange(position, position + realLength);
 
-                    // 🔥 SCROLL VERTICAL E HORIZONTAL
                     scrollToSelection(textarea, position, realLength);
                 } else {
-                    // Se não encontrar, selecionar o início da linha
                     textarea.focus();
                     textarea.setSelectionRange(position, position);
                     scrollToSelection(textarea, position, 0);
                 }
             } else {
-                // Sem busca, apenas focar na linha
                 textarea.focus();
                 textarea.setSelectionRange(position, position);
                 scrollToSelection(textarea, position, 0);
             }
 
-            // Limpar a busca
             const searchInput = document.getElementById('editModalSearch');
             const counter = document.getElementById('editModalSearchCounter');
 
@@ -4374,20 +4776,15 @@
             window.textareaMatchIndex = 0;
         }
 
-        // 🔥 NOVA FUNÇÃO PARA SCROLL PERFEITO
         function scrollToSelection(textarea, start, length) {
-            // Scroll vertical
             const textBeforeSelection = textarea.value.substring(0, start);
             const lineNumber = textBeforeSelection.split('\n').length;
             const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 20;
 
-            // Centralizar verticalmente
             const targetScrollTop = Math.max(0, (lineNumber - 3) * lineHeight);
             textarea.scrollTop = targetScrollTop;
 
-            // 🔥 SCROLL HORIZONTAL
             setTimeout(() => {
-                // Criar elemento temporário para medir a largura do texto
                 const measure = document.createElement('span');
                 measure.style.cssText = `
             position: absolute;
@@ -4397,12 +4794,10 @@
             font-size: ${getComputedStyle(textarea).fontSize};
         `;
 
-                // Pegar a linha atual
                 const lines = textarea.value.split('\n');
                 const currentLineIndex = lineNumber - 1;
                 const currentLine = lines[currentLineIndex] || '';
 
-                // Texto até a seleção na linha atual
                 const textBeforeInLine = textBeforeSelection.split('\n').pop() || '';
 
                 measure.textContent = textBeforeInLine;
@@ -4411,15 +4806,12 @@
                 const textWidth = measure.offsetWidth;
                 document.body.removeChild(measure);
 
-                // Scroll horizontal para mostrar a seleção
                 const textareaWidth = textarea.clientWidth;
-                const padding = 50; // margem de segurança
+                const padding = 50;
 
                 if (textWidth > textarea.scrollLeft + textareaWidth - padding) {
-                    // Precisa rolar para direita
                     textarea.scrollLeft = textWidth - textareaWidth / 2;
                 } else if (textWidth < textarea.scrollLeft + padding) {
-                    // Precisa rolar para esquerda
                     textarea.scrollLeft = Math.max(0, textWidth - padding);
                 }
             }, 10);
@@ -4470,7 +4862,6 @@
             if (searchInput) searchInput.value = '';
             if (counter) counter.textContent = '';
 
-            // Ocultar preview e mostrar textarea
             if (previewDiv) previewDiv.style.display = 'none';
             if (textarea) textarea.style.display = 'block';
 
@@ -4520,7 +4911,6 @@
 
             steps.forEach(step => {
                 step.classList.remove('step-focus');
-                // NÃO REMOVER: step.style.display = ''; ← ESTA LINHA CAUSA O PROBLEMA
 
                 const content = step.querySelector('.step-content');
                 if (content && content.dataset.original) {
@@ -4532,7 +4922,6 @@
             currentSearchMatches = [];
             currentMatchIndex = 0;
 
-            // IMPORTANTE: Recolher tudo após limpar a busca
             const taskId = taskElement.querySelector('[data-taskid]')?.getAttribute('data-taskid');
             if (taskId) {
                 setTimeout(() => {
@@ -4890,7 +5279,7 @@
                 if (!cb.checked) return;
                 const stepEl = cb.closest('.task-step');
                 const level = parseInt(stepEl?.getAttribute('data-level') || 0);
-                if (level === 0) return; // ignora perguntas
+                if (level === 0) return;
 
                 temResposta = true;
                 const isRespostaCerta = cb.getAttribute('data-is-resposta-certa') === 'true';
@@ -4928,12 +5317,10 @@
 
                 const texto = step.querySelector('.step-content')?.textContent || '';
 
-                // Captura preço por HORA
                 const matchHora = texto.match(
                     /(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d.,]+)\s*(?:reais|real|conto|contos|pila|pilas)?\s*(?:a|por|\/|o)\s*hora/i
                 );
 
-                // Captura preço por MINUTO — exige decimal OU âncora "ou/e"
                 const matchMinuto = texto.match(
                     /(?:\b(?:ou|e)\s+(?:R\$\s*)?([\d]+[.,][\d]+)|(?:custa|valor\s+de)\s+(?:R\$\s*)?([\d]+[.,][\d]+))\s*(?:reais|real|centavos?)?\s*(?:a|por|\/|o)\s*minuto/i
                 );
@@ -4949,32 +5336,26 @@
                 }
             });
 
-            // Deriva um do outro se só um foi definido
             if (precoPorHora !== null && precoPorMinuto === null) {
                 precoPorMinuto = precoPorHora / 60;
             } else if (precoPorMinuto !== null && precoPorHora === null) {
                 precoPorHora = precoPorMinuto * 60;
             } else if (precoPorHora === null && precoPorMinuto === null) {
-                // Padrão se nenhum marcado
                 precoPorHora = 90;
                 precoPorMinuto = 90 / 60;
             }
 
-            // console.log('precoPorHora:', precoPorHora, 'precoPorMinuto:', precoPorMinuto);
             return { precoPorHora, precoPorMinuto };
         }
 
         function detectarHoras(texto) {
             let totalMinutos = 0;
 
-            // HORAS: exige que depois do número venha espaço + hora/horas/h
-            // Usa \b para não pegar "1" de "1,33"
             const matchHora = texto.match(/\b(\d+)\s*(?:horas?|h\b)(?!\s*e?\s*\d*[.,]\d)/i);
             if (matchHora) {
                 totalMinutos += parseFloat(matchHora[1]) * 60;
             }
 
-            // MINUTOS: "30 minutos", "20 minutos", "30min"
             const matchMinuto = texto.match(/\b(\d+[\d.,]*)\s*(?:minutos?|min\b)/i);
             if (matchMinuto) {
                 totalMinutos += parseFloat(matchMinuto[1].replace(',', '.'));
@@ -5017,7 +5398,6 @@
                 }
             });
 
-            // Aplica porcentagens sobre o subtotal
             const total = subtotal * (1 + percentualTotal / 100);
 
             const totalDiv = document.getElementById(`total-${taskId}`);
@@ -5030,7 +5410,6 @@
                         style: 'currency',
                         currency: 'BRL'
                     });
-                    // Cor vermelha se desconto deixou negativo
                     totalValue.style.color = total < 0 ? '#FF3B30' : '';
                 } else {
                     totalDiv.style.display = 'none';
@@ -5054,7 +5433,6 @@
             }
         }
 
-        // Expandir todos os níveis
         function expandAllSteps(taskId) {
             const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
             if (!taskElement) return;
@@ -5073,7 +5451,6 @@
             }, 60);
         }
 
-        // Recolher todos os níveis (exceto nível 0)
         function collapseAllSteps(taskId) {
             const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
             if (!taskElement) return;
@@ -5093,7 +5470,6 @@
                 }
             });
         }
-        // ==================== SCROLL HORIZONTAL PARA TODOS OS STEPS VISÍVEIS ====================
 
         function scrollAllVisibleStepsToEnd(taskId) {
             const taskElement = document.querySelector(`[data-taskid="${taskId}"]`).closest('.task-item');
@@ -5105,16 +5481,13 @@
 
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    // Vertical: mostra último item
                     taskSteps.scrollTop = taskSteps.scrollHeight;
-                    // Horizontal: wrapper rola para o final do .task-steps (que agora tem largura real)
                     wrapper.scrollLeft = wrapper.scrollWidth;
                 });
             });
         }
 
         // ==================== BOTÕES VISUAIS DE NÍVEL ====================
-
         function _getLineRange(textarea) {
             const start = textarea.selectionStart;
             const value = textarea.value;
@@ -5129,11 +5502,9 @@
             const before = value.substring(0, lineStart);
             const after = value.substring(lineEnd);
             textarea.value = before + newLine + after;
-            // Mantém cursor no final da linha modificada
             const newPos = lineStart + newLine.length;
             textarea.selectionStart = textarea.selectionEnd = newPos;
             textarea.focus();
-            // Atualiza indicador de nível
             updateLevelIndicator(textarea.id);
         }
 
@@ -5154,41 +5525,36 @@
                 const label = labels[level] || 'Nível ' + level;
                 indicator.textContent = label + ' (' + level + ')';
 
-                // Mudar cor conforme o nível
                 const cores = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#607D8B', '#795548'];
                 indicator.style.background = cores[level] || '#607D8B';
                 indicator.style.color = 'white';
             }
         }
 
-        // Define o nível exato da linha atual
         function setLineLevel(textareaId, level) {
             const textarea = document.getElementById(textareaId);
             if (!textarea) return;
             const { value, lineStart, lineEnd } = _getLineRange(textarea);
             const currentLine = value.substring(lineStart, lineEnd);
-            const text = currentLine.trimStart(); // remove indentação existente
+            const text = currentLine.trimStart();
             const newLine = '  '.repeat(Math.max(0, level)) + text;
             _applyLineChange(textarea, lineStart, lineEnd, newLine);
         }
 
-        // Aumenta o nível da linha atual em +1
         function increaseLineLevel(textareaId) {
             const textarea = document.getElementById(textareaId);
             if (!textarea) return;
             const { value, lineStart, lineEnd } = _getLineRange(textarea);
             const currentLine = value.substring(lineStart, lineEnd);
-            const newLine = '  ' + currentLine; // adiciona 2 espaços no início
+            const newLine = '  ' + currentLine;
             _applyLineChange(textarea, lineStart, lineEnd, newLine);
         }
 
-        // Diminui o nível da linha atual em -1 (mínimo 0)
         function decreaseLineLevel(textareaId) {
             const textarea = document.getElementById(textareaId);
             if (!textarea) return;
             const { value, lineStart, lineEnd } = _getLineRange(textarea);
             const currentLine = value.substring(lineStart, lineEnd);
-            // Remove até 2 espaços do início
             const newLine = currentLine.replace(/^ {1,2}/, '');
             _applyLineChange(textarea, lineStart, lineEnd, newLine);
         }
@@ -5196,6 +5562,22 @@
         // ==================== DOM CONTENT LOADED ====================
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Aplicação inicializada');
+
+            // ── AUDIO NOTE BUTTONS ──
+            const audioNoteBtn = document.getElementById('audioNoteBtn');
+            const editAudioNoteBtn = document.getElementById('editAudioNoteBtn');
+
+            if (audioNoteBtn) {
+                audioNoteBtn.addEventListener('click', () => {
+                    startAudioNoteRecording('taskSteps', 'audioNoteBtn', 'audioNoteStatus');
+                });
+            }
+
+            if (editAudioNoteBtn) {
+                editAudioNoteBtn.addEventListener('click', () => {
+                    startAudioNoteRecording('editTaskSteps', 'editAudioNoteBtn', 'editAudioNoteStatus');
+                });
+            }
 
             // Event listeners - Imagens
             const taskImageInput = document.getElementById('taskImage');
@@ -5230,7 +5612,6 @@
                         taskList.classList.remove('has-search');
                     }
 
-                    // Aguarda 300ms após parar de digitar para buscar
                     clearTimeout(searchDebounceTimer);
                     searchDebounceTimer = setTimeout(() => {
                         currentPage = 1;
@@ -5305,7 +5686,7 @@
                         totalLoadedTasks = filteredTasks.length;
                         this.style.display = 'none';
                     }
-                    loadTasks(); // ← MUDANÇA: usar loadTasks() ao invés de renderTasks()
+                    loadTasks();
                 });
             }
 
@@ -5324,18 +5705,16 @@
                 createTaskBtn.addEventListener('click', () => {
                     const container = document.querySelector('.container');
                     const toggleBtn = document.getElementById('toggleContainerBtn');
-                    const viewModeBar = document.querySelector('.mostraEmodos'); // 👈 ADICIONE
-                    if (viewModeBar) viewModeBar.style.display = 'none'; // 👈 ADICIONE
+                    const viewModeBar = document.querySelector('.mostraEmodos');
+                    if (viewModeBar) viewModeBar.style.display = 'none';
 
                     if (resetBtn) resetBtn.style.display = 'inline-block';
 
                     if (container && container.style.display === 'none') {
-                        // ===== OCULTAR TODAS AS TAREFAS =====
                         const allTaskItems = document.querySelectorAll('.task-item');
                         allTaskItems.forEach(item => {
                             item.style.display = 'none';
                         });
-                        // ===== FIM =====
 
                         container.style.display = 'block';
                         if (toggleBtn) {
@@ -5356,6 +5735,7 @@
                     if (taskNameInput) taskNameInput.value = '';
                     if (taskStepsInput) taskStepsInput.value = '';
                     if (taskImageInput) taskImageInput.value = '';
+                    clearPendingAudioNotes();
                     isFirstAudioInput = true;
                 });
             }
@@ -5413,15 +5793,13 @@
                     toggleBtn.style.display = 'none';
                     if (resetBtn) resetBtn.style.display = 'none';
 
-                    const viewModeBar = document.querySelector('.mostraEmodos'); // 👈 ADICIONE
-                    if (viewModeBar) viewModeBar.style.display = 'block'; // 👈 ADICIONE
+                    const viewModeBar = document.querySelector('.mostraEmodos');
+                    if (viewModeBar) viewModeBar.style.display = 'block';
 
-                    // ===== MOSTRAR TODAS AS TAREFAS NOVAMENTE =====
                     const allTaskItems = document.querySelectorAll('.task-item');
                     allTaskItems.forEach(item => {
                         item.style.display = 'block';
                     });
-                    // ===== FIM =====
                 });
             }
 
@@ -5550,11 +5928,11 @@
                         margin: 5px 0;
                         border-left: 3px solid transparent;
                         transition: all 0.3s ease;
-                        cursor: pointer; /* 🔥 Mostrar que é clicável */
+                        cursor: pointer;
                     }
                     
                     #editModalPreview .task-step:hover {
-                        background-color: #f0f0f0; /* 🔥 Efeito hover */
+                        background-color: #f0f0f0;
                     }
                     
                     #editModalPreview .task-step.step-focus {
@@ -5570,16 +5948,12 @@
                 `;
             document.head.appendChild(style);
 
-            // console.log('Dispositivo detectado:', isMobileDevice() ? 'Mobile' : 'Desktop');
-            // console.log('Pausa após título:', PAUSE_AFTER_TITLE + 'ms');
-            // console.log('Pausa entre steps:', PAUSE_BETWEEN_STEPS + 'ms');
-            // ===== ATALHOS DE TECLADO PARA MARCADORES =====
+            // Atalhos de teclado para marcadores
             const taskStepsInput = document.getElementById('taskSteps');
             const editTaskStepsInput = document.getElementById('editTaskSteps');
 
             if (taskStepsInput) {
                 taskStepsInput.addEventListener('keydown', function (e) {
-                    // Tab: inserir 2 espaços
                     if (e.key === 'Tab') {
                         e.preventDefault();
                         const start = this.selectionStart;
@@ -5589,21 +5963,18 @@
                         return;
                     }
 
-                    // Ctrl + / : inserir barra
                     if (e.ctrlKey && e.key === '/') {
                         e.preventDefault();
                         insertMarkerAtCursor(this, '/');
                         return;
                     }
 
-                    // Ctrl + > : inserir seta
                     if (e.ctrlKey && e.key === '.') {
                         e.preventDefault();
                         insertMarkerAtCursor(this, '>');
                         return;
                     }
 
-                    // Ctrl + - : inserir traço
                     if (e.ctrlKey && e.key === '-') {
                         e.preventDefault();
                         insertMarkerAtCursor(this, '-');
@@ -5643,26 +6014,22 @@
                 });
             }
         });
-        // Função auxiliar para inserir marcador
+
         function insertMarkerAtCursor(textarea, marker) {
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
             const value = textarea.value;
 
-            // Encontrar início da linha
             const lineStart = value.lastIndexOf('\n', start - 1) + 1;
             const lineEnd = value.indexOf('\n', start);
             const actualLineEnd = lineEnd === -1 ? value.length : lineEnd;
 
-            // Pegar linha atual
             const currentLine = value.substring(lineStart, actualLineEnd);
 
-            // Verificar marcadores existentes
             const markerRegex = new RegExp(`^(\\${marker}+)\\s*(.*)$`);
             const match = currentLine.match(markerRegex);
 
             if (match) {
-                // Adicionar mais um marcador
                 const existingMarkers = match[1];
                 const restOfLine = match[2];
                 const newMarkers = existingMarkers + marker + ' ';
@@ -5670,10 +6037,8 @@
 
                 textarea.value = value.substring(0, lineStart) + newLine + value.substring(actualLineEnd);
 
-                // Cursor no final dos marcadores
                 textarea.selectionStart = textarea.selectionEnd = lineStart + newMarkers.length;
             } else {
-                // Adicionar primeiro marcador
                 const newMarker = marker + ' ';
                 textarea.value = value.substring(0, lineStart) + newMarker + currentLine + value.substring(actualLineEnd);
 
@@ -5684,13 +6049,21 @@
         // ==================== LIMPEZA AO SAIR ====================
         window.addEventListener('beforeunload', () => {
             stopAudioSequence();
+            // Para qualquer gravação de nota de áudio em andamento
+            if (audioNoteMediaRecorder && audioNoteMediaRecorder.state !== 'inactive') {
+                audioNoteMediaRecorder.stop();
+            }
+            // Para todos os áudios inline ativos
+            Object.values(activeAudioElements).forEach(audio => {
+                audio.pause();
+            });
         });
 
         window.addEventListener('pagehide', stopAudioSequence);
     </script>
 
-
 </body>
+
 
 
 
