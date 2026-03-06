@@ -3059,6 +3059,10 @@
                     const toggleBtn = document.getElementById('toggleContainerBtn');
                     if (container) container.style.display = 'none';
                     if (toggleBtn) toggleBtn.style.display = 'none';
+                    const viewModeContainer = document.querySelector('.view-mode-container');
+                    const metaRow = document.querySelector('.meta-row');
+                    if (viewModeContainer) viewModeContainer.style.display = 'block';
+                    if (metaRow) metaRow.style.display = '';
 
                     // Mostrar todas as tarefas novamente
                     setTimeout(() => {
@@ -3088,6 +3092,11 @@
             const toggleBtn = document.getElementById('toggleContainerBtn');
             if (container) container.style.display = 'none';
             if (toggleBtn) toggleBtn.style.display = 'none';
+            const viewModeContainer = document.querySelector('.view-mode-container');
+            const metaRow = document.querySelector('.meta-row');
+            if (viewModeContainer) viewModeContainer.style.display = 'block';
+            if (metaRow) metaRow.style.display = '';
+
 
             // Mostrar todas as tarefas novamente
             setTimeout(() => {
@@ -4542,6 +4551,13 @@
                 // ===== FIM =====
 
                 // Fechar todas as outras tarefas
+                // Esconde showMoreBtn e meta-row, mantém buttons-row visível
+                const showMoreBtn = document.getElementById('showMoreBtn');
+                const metaRow = document.querySelector('.meta-row');
+                if (showMoreBtn) showMoreBtn.style.display = 'none';
+                if (metaRow) metaRow.style.display = 'none';
+
+
                 closeAllOtherTasks(taskId);
 
                 // EXPANDINDO A TAREFA
@@ -4630,6 +4646,11 @@
                 // ===== FIM =====
 
                 // RECOLHENDO A TAREFA
+                // Restaura showMoreBtn e meta-row
+                const metaRow = document.querySelector('.meta-row');
+                if (metaRow) metaRow.style.display = '';
+                updateShowMoreButton(); // recalcula se showMoreBtn deve aparecer
+
                 clearStepSearch(taskElement);
                 expandedTasks.delete(taskId);
                 taskElement.classList.add('collapsed');
@@ -5925,16 +5946,18 @@
                     const container = document.querySelector('.container');
                     const toggleBtn = document.getElementById('toggleContainerBtn');
                     const viewModeBar = document.querySelector('.mostraEmodos');
-                    if (viewModeBar) viewModeBar.style.display = 'none';
-
-                    if (resetBtn) resetBtn.style.display = 'inline-block';
+                    const viewModeContainer = document.querySelector('.view-mode-container');
+                    const showMoreBtnEl = document.getElementById('showMoreBtn');
+                    const metaRow = document.querySelector('.meta-row');
 
                     if (container && container.style.display === 'none') {
-                        // ===== OCULTAR TODAS AS TAREFAS =====
-                        const allTaskItems = document.querySelectorAll('.task-item');
-                        allTaskItems.forEach(item => {
-                            item.style.display = 'none';
-                        });
+                        // Esconde tudo exceto o formulario
+                        if (viewModeContainer) viewModeContainer.style.display = 'none';
+                        if (showMoreBtnEl) showMoreBtnEl.style.display = 'none';
+                        if (viewModeBar) viewModeBar.style.display = 'none';
+                        if (metaRow) metaRow.style.display = 'none';
+
+                        if (resetBtn) resetBtn.style.display = 'inline-block';
                         // ===== FIM =====
 
                         container.style.display = 'block';
@@ -6018,6 +6041,11 @@
                     if (viewModeBar) viewModeBar.style.display = 'block';
 
                     // ===== MOSTRAR TODAS AS TAREFAS NOVAMENTE =====
+                    const viewModeContainer = document.querySelector('.view-mode-container');
+                    if (viewModeContainer) viewModeContainer.style.display = 'block';
+
+                    const metaRow = document.querySelector('.meta-row');
+                    if (metaRow) metaRow.style.display = '';
                     const allTaskItems = document.querySelectorAll('.task-item');
                     allTaskItems.forEach(item => {
                         item.style.display = 'block';
